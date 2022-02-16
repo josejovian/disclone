@@ -9,32 +9,8 @@ import { Provider } from "react-redux";
 import { createStore } from "redux";
 
 const initialState = {
-	channels: {
-		0: {
-			name: "Welcome",
-			property: {
-				isReadOnly: true,
-			},
-		},
-		1: {
-			name: "Front-End Dev",
-			property: {
-				isReadOnly: false,
-			},
-		},
-		2: {
-			name: "Gaming",
-			property: {
-				isReadOnly: false,
-			},
-		},
-	},
-	channel: {
-		name: "Welcome",
-		property: {
-			isReadOnly: true,
-		},
-	},
+	channels: null,
+	channel: null,
 	user: null,
 };
 
@@ -46,6 +22,7 @@ export const reducer = (state = initialState, action) => {
 				channel: action.channel,
 			};
 		case "CHANNEL_ALL":
+			console.log("Channel All");
 			return {
 				...state,
 				channels: action.channels,

@@ -7,7 +7,6 @@ export function mapStateToProps(state) {
 }
 
 export function setChannel(channel, channels) {
-	console.log(`Set Channel: ${channel}`);
 	return {
 		type: "CHANNEL_SWITCH",
 		channel: channels[channel],
@@ -16,7 +15,7 @@ export function setChannel(channel, channels) {
 
 export function downloadChannel(channels) {
 	return {
-		type: "CHANNEL_DOWNLOAD",
+		type: "CHANNEL_ALL",
 		channels: channels,
 	};
 }

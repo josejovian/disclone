@@ -11,8 +11,7 @@ import { connect } from "react-redux";
 import { store } from "../index";
 
 const Main = ({ channel }) => {
-	console.log(channel);
-
+	
 	const chats = [
 		"Hello there!",
 		"What's up?",
@@ -41,6 +40,8 @@ const Main = ({ channel }) => {
 		console.log("TEXT");
 		setChat([...currentChat, text]);
 	}
+
+	let display = (channel !== null) ? channel.name : 'Unknown Channel' ;
 
 	return (
 		<Box
@@ -72,7 +73,6 @@ const Main = ({ channel }) => {
 				right="0"
 				paddingLeft="4rem"
 				alignItems="center"
-				shadow="md"
 			>
 				<Box
 					display="flex"
@@ -81,9 +81,10 @@ const Main = ({ channel }) => {
 					justifyContent="flex-start"
 					paddingLeft="4rem"
 					alignItems="center"
-					height="3.5rem"
+					height="3.2rem"
 					zIndex="4"
 					bg="#252329"
+					shadow="md"
 				>
 					<Text
 						lineHeight="1rem"
@@ -91,7 +92,7 @@ const Main = ({ channel }) => {
 						fontWeight="bold"
 						fontFamily="Noto Sans"
 					>
-						{channel.name}
+						{display}
 					</Text>
 				</Box>
 			</Box>

@@ -1,17 +1,17 @@
 import { Box, Text, Image, Stack, HStack } from "@chakra-ui/react";
-import {
-	mapStateToProps,
-	setChannel,
-	mapDispatchToProps,
-} from "../Redux";
+import { mapStateToProps, mapDispatchToProps } from "../Redux";
 import { connect } from "react-redux";
 
 const channelSize = "32px";
 
-const Channel = ({channels, name, property, id, setChannel}) => {
-
-	console.log(channels);
-
+const Channel = ({
+	isDummy,
+	channels,
+	name = "",
+	property,
+	id,
+	setChannel,
+}) => {
 	function getInitials(str) {
 		let initials = "";
 
@@ -31,9 +31,15 @@ const Channel = ({channels, name, property, id, setChannel}) => {
 		return initials;
 	}
 
+	function prepareChannel() {
+		if (isDummy) return;
+
+		setChannel(id, channels);
+	}
+
 	return (
 		<Box
-			width="calc(384px)"
+			width="384px"
 			display="flex"
 			flexDirection="row"
 			padding="0.25rem 2rem"
@@ -41,7 +47,7 @@ const Channel = ({channels, name, property, id, setChannel}) => {
 			fontFamily="Noto Sans"
 			userSelect="none"
 			cursor="pointer"
-			onClick={() => setChannel(id, channels)}
+			onClick={() => prepareChannel()}
 			_hover={{
 				backgroundColor: "#3C393F",
 			}}
