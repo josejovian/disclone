@@ -13,9 +13,9 @@ import {
 } from "firebase/auth";
 import { getDatabase, ref, set, child, get } from "firebase/database";
 import { useEffect, useState } from "react";
-import { mapStateToProps, mapDispatchToProps } from "./Redux";
+import { mapStateToProps, mapDispatchToProps, setChannel } from "./Redux";
 import { connect } from "react-redux";
-
+import { fetchData } from "./Firebase";
 const config = {
 	apiKey: process.env.REACT_APP_API_KEY,
 	authDomain: process.env.REACT_APP_AUTH_DOMAIN,
@@ -27,39 +27,33 @@ const app = firebase.initializeApp(config);
 const auth = getAuth();
 const db = getDatabase(app);
 
-async function fetchData(link) {
-	let promise = new Promise(function (res, rej) {
-		get(child(ref(db), link))
-			.then((snapshot) => {
-				let data = null;
-				if (snapshot.exists()) {
-					data = snapshot.val();
-				}
-				res(data);
-			})
-			.catch((error) => {
-				console.log(error);
-				rej(error);
-			});
-	});
-
-	let result = await promise;
-	return result;
-}
-
-const App = ({ downloadChannel }) => {
+const App = ({ channel, setChannel, downloadChannel, chatChannel }) => {
 
 	const [init, setInit] = useState(false);
 
 	async function initialize() {
-		let rawData = await fetchData(`channel/`);
+		let rawData = await fetchData(db, `channel/`);
 		downloadChannel(Object.values(rawData));
+		setChannel(0);
 		console.log(Object.values(rawData));
+	}
+
+	async function getChatOfChannel(channelId) {
+		let rawData = await fetchData(db, `message/${channelId}/`);
+		console.log(channelId);
+		console.log(rawData);
+		if(rawData === null)
+			return;
+		chatChannel(Object.values(rawData));
 	}
 
 	useEffect(() => {
 		initialize();
-	}, [init]);
+	}, [ init ]);
+
+	useEffect(() => {
+		getChatOfChannel(channel);
+	}, [ channel ]);
 
 	return (
 		<div className="App">

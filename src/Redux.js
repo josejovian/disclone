@@ -6,10 +6,10 @@ export function mapStateToProps(state) {
 	};
 }
 
-export function setChannel(channel, channels) {
+export function setChannel(channel) {
 	return {
 		type: "CHANNEL_SWITCH",
-		channel: channels[channel],
+		channel: channel,
 	};
 }
 
@@ -17,6 +17,13 @@ export function downloadChannel(channels) {
 	return {
 		type: "CHANNEL_ALL",
 		channels: channels,
+	};
+}
+
+export function chatChannel(chats) {
+	return {
+		type: "CHANNEL_CHAT",
+		channels: chats,
 	};
 }
 
@@ -37,6 +44,7 @@ export function logout() {
 export const mapDispatchToProps = {
 	setChannel,
 	downloadChannel,
+	chatChannel,
 	login,
 	logout,
 };

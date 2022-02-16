@@ -4,7 +4,7 @@ const profileSize = "48px";
 
 const Fragment = ({
 	picture,
-	name = "Chat User",
+	author = "Chat User",
 	timestamp = "unknown",
 	message = "Message",
 }) => {
@@ -28,7 +28,7 @@ const Fragment = ({
 			<Stack marginLeft="2rem">
 				<Box display="flex" alignItems="center">
 					<Text color="#828282" fontWeight="700">
-						{name}
+						{author}
 					</Text>
 					<Text color="#828282" fontSize="0.8rem" marginLeft="2rem">
 						{timestamp}

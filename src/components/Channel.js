@@ -34,7 +34,7 @@ const Channel = ({
 	function prepareChannel() {
 		if (isDummy) return;
 
-		setChannel(id, channels);
+		setChannel(id);
 	}
 
 	return (

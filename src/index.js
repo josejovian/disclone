@@ -22,10 +22,14 @@ export const reducer = (state = initialState, action) => {
 				channel: action.channel,
 			};
 		case "CHANNEL_ALL":
-			console.log("Channel All");
 			return {
 				...state,
 				channels: action.channels,
+			};
+		case "CHANNEL_CHAT":
+			return {
+				...state,
+				chats: action.chats,
 			};
 		case "USER_LOGIN":
 			return {

@@ -18,14 +18,11 @@ export const ChannelList = (props) => {
 	const [Channels, setChannels] = useState(null);
 	const channels = props.channels;
 
-	console.log(props);
 	let entries = [];
 	useEffect(() => {
-		console.log(channels);
 		if(channels !== null && channels !== undefined && loaded === false) {
 			entries = Object.entries(channels);
 			const displayChannel = entries.map((value) => {
-				console.log(value);
 				let key = value[0];
 				let val = value[1];
 				return (<Channel key={`channel-${key}-${val.name}`} {...val} id={key} />);
@@ -34,9 +31,6 @@ export const ChannelList = (props) => {
 			setLoaded(true);
 		}
 	});
-	
-	// const 
-	// console.log(displayChannel);
 
 	if (loaded === false)
 		return (
@@ -51,7 +45,7 @@ export const ChannelList = (props) => {
 };
 
 const Side = (props) => {
-	console.log(props);
+
 	return (
 		<Box
 			position="fixed"

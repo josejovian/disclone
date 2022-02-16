@@ -10,30 +10,30 @@ import {
 import { connect } from "react-redux";
 import { store } from "../index";
 
-const Main = ({ channel }) => {
+const Main = ({ chats=[], channel, channels }) => {
 	
-	const chats = [
-		"Hello there!",
-		"What's up?",
-		"Lorem ipsum",
-		"Gibberish",
-		"Asdfghkl",
-		"Hello there!",
-		"What's up?",
-		"Lorem ipsum",
-		"Gibberish",
-		"Asdfghkl",
-		"Hello there!",
-		"What's up?",
-		"Lorem ipsum",
-		"Gibberish",
-		"Asdfghkl",
-	];
+	// const chats = [
+	// 	"Hello there!",
+	// 	"What's up?",
+	// 	"Lorem ipsum",
+	// 	"Gibberish",
+	// 	"Asdfghkl",
+	// 	"Hello there!",
+	// 	"What's up?",
+	// 	"Lorem ipsum",
+	// 	"Gibberish",
+	// 	"Asdfghkl",
+	// 	"Hello there!",
+	// 	"What's up?",
+	// 	"Lorem ipsum",
+	// 	"Gibberish",
+	// 	"Asdfghkl",
+	// ];
 
 	const [currentChat, setChat] = useState(chats);
 
 	const ChatFragments = currentChat.map((value, idx) => (
-		<Fragment key={`${idx}-${value}`} message={`${value}`} />
+		<Fragment key={`${idx}-${value}`} data={value} />
 	));
 
 	function chat(text) {
@@ -41,7 +41,7 @@ const Main = ({ channel }) => {
 		setChat([...currentChat, text]);
 	}
 
-	let display = (channel !== null) ? channel.name : 'Unknown Channel' ;
+	let display = (channel !== null && channels !== null) ? channels[channel].name : 'Unknown Channel' ;
 
 	return (
 		<Box
