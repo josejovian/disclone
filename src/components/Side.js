@@ -3,15 +3,20 @@ import { useEffect } from "react";
 import Channel from "./Channel";
 
 const Side = ({ channels }) => {
-	useEffect(() => {}, []);
 
 	let Channels = [];
 	for (const [key, value] of Object.entries(channels)) {
+		console.log(value);
+		let content = value;
 		Channels.push(
-			<Channel key={`channel-${key}-${value.name}`} name={value.name} />
+			<Channel
+				key={`channel-${key}-${value.name}`}
+				{...content}
+				id={key}
+			/>
 		);
 	}
-	
+
 	return (
 		<Box
 			position="fixed"

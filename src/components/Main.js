@@ -2,8 +2,17 @@ import { Box, Text } from "@chakra-ui/react";
 import Fragment from "./Fragment";
 import SendChat from "./SendChat";
 import { useState } from "react";
+import {
+	mapStateToProps,
+	setChannel,
+	mapDispatchToProps,
+} from "../Redux";
+import { connect } from "react-redux";
+import { store } from "../index";
 
 const Main = ({ channel }) => {
+	console.log(channel);
+
 	const chats = [
 		"Hello there!",
 		"What's up?",
@@ -82,7 +91,7 @@ const Main = ({ channel }) => {
 						fontWeight="bold"
 						fontFamily="Noto Sans"
 					>
-						Welcome
+						{channel.name}
 					</Text>
 				</Box>
 			</Box>
@@ -91,4 +100,4 @@ const Main = ({ channel }) => {
 	);
 };
 
-export default Main;
+export default connect(mapStateToProps)(Main);
