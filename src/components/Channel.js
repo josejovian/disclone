@@ -3,19 +3,17 @@ import { Box, Text, Image, Stack, HStack } from "@chakra-ui/react";
 const channelSize = "32px";
 
 const Channel = ({ name }) => {
-
 	function getInitials(str) {
 		let initials = "";
 
 		str = str.toUpperCase();
-		
+
 		initials += str[0];
 
 		let space = false;
-		for(let i = 1; i < str.length && initials.length < 2; i++) {
-			if(str[i] == ' ')
-				space = true;
-			else if(space == true) {
+		for (let i = 1; i < str.length && initials.length < 2; i++) {
+			if (str[i] == " ") space = true;
+			else if (space == true) {
 				initials += str[i];
 				space = false;
 			}
