@@ -12,10 +12,24 @@ const initialState = {
 	channels: null,
 	channel: null,
 	user: null,
+	channelUsers: null,
+	chats: [],
+	database: null,
+	db: null,
 };
 
 export const reducer = (state = initialState, action) => {
 	switch (action.type) {
+		case "DATABASE_INITIALIZE":
+			return {
+				...state,
+				database: action.database,
+			};
+		case "DB_INITIALIZE":
+			return {
+				...state,
+				db: action.db,
+			};
 		case "CHANNEL_SWITCH":
 			return {
 				...state,
@@ -30,6 +44,11 @@ export const reducer = (state = initialState, action) => {
 			return {
 				...state,
 				chats: action.chats,
+			};
+		case "CHANNEL_USERS":
+			return {
+				...state,
+				channelUsers: action.channelUsers,
 			};
 		case "USER_LOGIN":
 			return {

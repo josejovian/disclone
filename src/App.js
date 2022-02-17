@@ -11,7 +11,7 @@ import {
 	createUserWithEmailAndPassword,
 	signOut,
 } from "firebase/auth";
-import { getDatabase, ref, set, child, get } from "firebase/database";
+import { getDatabase, ref, set, child, get, onValue } from "firebase/database";
 import { useEffect, useState } from "react";
 import { mapStateToProps, mapDispatchToProps, setChannel } from "./Redux";
 import { connect } from "react-redux";
@@ -27,33 +27,72 @@ const app = firebase.initializeApp(config);
 const auth = getAuth();
 const db = getDatabase(app);
 
-const App = ({ channel, setChannel, downloadChannel, chatChannel }) => {
-
+const App = ({
+	chats,
+	channel,
+	channels,
+	setDatabase,
+	setDb,
+	setChannel,
+	downloadChannel,
+	chatChannel,
+	usersChannel,
+}) => {
 	const [init, setInit] = useState(false);
+
+	async function initFirebase() {
+		if(setDatabase === undefined)
+			return;
+		
+		setDatabase(firebase.database());
+		setDb(db);
+	}
 
 	async function initialize() {
 		let rawData = await fetchData(db, `channel/`);
 		downloadChannel(Object.values(rawData));
 		setChannel(0);
-		console.log(Object.values(rawData));
 	}
 
-	async function getChatOfChannel(channelId) {
-		let rawData = await fetchData(db, `message/${channelId}/`);
-		console.log(channelId);
-		console.log(rawData);
-		if(rawData === null)
-			return;
-		chatChannel(Object.values(rawData));
+	async function getChatOfChannel() {
+		let rawData = await fetchData(db, `message/${channel}/`);
+
+		if (rawData === null) return;
+
+		onValue(ref(db, `message/${channel}/`), (snapshot) => {
+			console.log(`${channel}`);
+			const data = snapshot.val();
+			chatChannel(Object.values(data).reverse());
+		});
 	}
 
-	useEffect(() => {
+	async function getMemberOfChannel() {
+		if (channels === null || channel === null) return;
+
+		let members = channels[channel].member;
+		let memberOfChannel = {};
+
+		for await (const memberId of members) {
+			let rawData = await fetchData(db, `user/${memberId}/`);
+			if(rawData !== null) {
+				memberOfChannel = {...memberOfChannel, [memberId]: rawData}
+				memberOfChannel[memberId] = rawData;
+			}
+		}
+		
+		usersChannel(JSON.stringify(memberOfChannel));
+	}
+
+	useEffect(async () => {
+		await initFirebase();
 		initialize();
-	}, [ init ]);
+	}, [init]);
 
-	useEffect(() => {
-		getChatOfChannel(channel);
-	}, [ channel ]);
+	useEffect(async () => {
+		chatChannel([]);
+		await getChatOfChannel();
+		await getMemberOfChannel();
+	}, [channel, channels]);
 
 	return (
 		<div className="App">

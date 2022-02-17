@@ -2,46 +2,48 @@ import { Box, Text } from "@chakra-ui/react";
 import Fragment from "./Fragment";
 import SendChat from "./SendChat";
 import { useState } from "react";
-import {
-	mapStateToProps,
-	setChannel,
-	mapDispatchToProps,
-} from "../Redux";
+import { mapStateToProps, setChannel, mapDispatchToProps } from "../Redux";
+import { writeData, fetchData } from "../Firebase";
 import { connect } from "react-redux";
 import { store } from "../index";
+import { getDatabase, ref, set, child, get } from "firebase/database";
+import firebase from "firebase/compat/app";
 
-const Main = ({ chats=[], channel, channels }) => {
-	
-	// const chats = [
-	// 	"Hello there!",
-	// 	"What's up?",
-	// 	"Lorem ipsum",
-	// 	"Gibberish",
-	// 	"Asdfghkl",
-	// 	"Hello there!",
-	// 	"What's up?",
-	// 	"Lorem ipsum",
-	// 	"Gibberish",
-	// 	"Asdfghkl",
-	// 	"Hello there!",
-	// 	"What's up?",
-	// 	"Lorem ipsum",
-	// 	"Gibberish",
-	// 	"Asdfghkl",
-	// ];
+const Main = ({
+	database,
+	db,
+	chats = [],
+	usersChannel,
+	channel,
+	channels,
+}) => {
+	const ChatFragments = chats.map((value, idx) => {
+		return <Fragment key={`${idx}-${value}`} data={value} />;
+	});
 
-	const [currentChat, setChat] = useState(chats);
-
-	const ChatFragments = currentChat.map((value, idx) => (
-		<Fragment key={`${idx}-${value}`} data={value} />
-	));
-
-	function chat(text) {
-		console.log("TEXT");
-		setChat([...currentChat, text]);
+	async function getChatCounter() {
+		return await fetchData(db, 'counter/');
 	}
 
-	let display = (channel !== null && channels !== null) ? channels[channel].name : 'Unknown Channel' ;
+	async function sendChat(text) {
+		let id = await getChatCounter();
+		let message = {
+			author: "system",
+			message: text,
+			timestamp: "Unknown Time",
+		};
+
+		writeData(db, `message/${channel}/${id.message}`, message);
+		database
+			.ref("counter/")
+			.child("message")
+			.set(firebase.database.ServerValue.increment(1));
+	}
+
+	let display =
+		channel !== null && channels !== null
+			? channels[channel].name
+			: "Unknown Channel";
 
 	return (
 		<Box
@@ -96,9 +98,9 @@ const Main = ({ chats=[], channel, channels }) => {
 					</Text>
 				</Box>
 			</Box>
-			<SendChat chat={chat} />
+			<SendChat chat={sendChat} />
 		</Box>
 	);
 };
 
-export default connect(mapStateToProps)(Main);
+export default connect(mapStateToProps, mapDispatchToProps)(Main);

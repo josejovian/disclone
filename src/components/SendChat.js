@@ -24,6 +24,7 @@ const SendChat = ({ chat }) => {
 		if (event.keyCode === 13) {
 			event.preventDefault();
 			sendChat();
+			
 		}
 	}
 
