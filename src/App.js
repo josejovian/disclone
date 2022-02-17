@@ -62,7 +62,7 @@ const App = ({
 		onValue(ref(db, `message/${channel}/`), (snapshot) => {
 			console.log(`${channel}`);
 			const data = snapshot.val();
-			chatChannel(Object.values(data).reverse());
+			chatChannel(Object.values(data));
 		});
 	}
 
