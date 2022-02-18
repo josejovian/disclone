@@ -9,13 +9,11 @@ const Fragment = ({ channelUsers, data }) => {
 	const [display, setDisplay] = useState("Unknown User");
 
 	useEffect(() => {
-		// console.log(Object.values(channelUsers));
 		if (channelUsers === null) return;
-		// channelUsers = Object.values(channelUsers);
-		console.log(channelUsers);
+
 		channelUsers = JSON.parse(channelUsers);
 		const author = channelUsers[`'${data.author}'`];
-		console.log(channelUsers[data.author]);
+
 		setDisplay(channelUsers[data.author].name);
 	}, [channelUsers]);
 

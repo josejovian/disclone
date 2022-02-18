@@ -41,9 +41,8 @@ const App = ({
 	const [init, setInit] = useState(false);
 
 	async function initFirebase() {
-		if(setDatabase === undefined)
-			return;
-		
+		if (setDatabase === undefined) return;
+
 		setDatabase(firebase.database());
 		setDb(db);
 	}
@@ -54,15 +53,22 @@ const App = ({
 		setChannel(0);
 	}
 
+	async function getChannels() {
+		onValue(ref(db, `channel/`), (snapshot) => {
+			if (snapshot.exists()) {
+				const data = snapshot.val();
+				downloadChannel(Object.values(data));
+			}
+		});
+	}
+
 	async function getChatOfChannel() {
-		let rawData = await fetchData(db, `message/${channel}/`);
-
-		if (rawData === null) return;
-
+		if (channel === undefined) return;
 		onValue(ref(db, `message/${channel}/`), (snapshot) => {
-			console.log(`${channel}`);
-			const data = snapshot.val();
-			chatChannel(Object.values(data));
+			if (snapshot.exists()) {
+				const data = snapshot.val();
+				chatChannel(Object.values(data));
+			}
 		});
 	}
 
@@ -74,18 +80,19 @@ const App = ({
 
 		for await (const memberId of members) {
 			let rawData = await fetchData(db, `user/${memberId}/`);
-			if(rawData !== null) {
-				memberOfChannel = {...memberOfChannel, [memberId]: rawData}
+			if (rawData !== null) {
+				memberOfChannel = { ...memberOfChannel, [memberId]: rawData };
 				memberOfChannel[memberId] = rawData;
 			}
 		}
-		
+
 		usersChannel(JSON.stringify(memberOfChannel));
 	}
 
 	useEffect(async () => {
 		await initFirebase();
 		initialize();
+		getChannels();
 	}, [init]);
 
 	useEffect(async () => {

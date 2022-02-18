@@ -1,14 +1,18 @@
-import { Box, Text } from "@chakra-ui/react";
+import { Box, Text, useToast } from "@chakra-ui/react";
+
+import React, { useState, useRef } from "react";
+import { connect } from "react-redux";
+import { mapStateToProps, setChannel, mapDispatchToProps } from "../Redux";
+
 import Fragment from "./Fragment";
 import SendChat from "./SendChat";
-import { useState } from "react";
-import { mapStateToProps, setChannel, mapDispatchToProps } from "../Redux";
+
 import { writeData, fetchData } from "../Firebase";
-import { connect } from "react-redux";
-import { store } from "../index";
+
 import { getDatabase, ref, set, child, get } from "firebase/database";
 import firebase from "firebase/compat/app";
-
+import { showErrorToast } from "./ShowToast";
+import { store } from "../index";
 const Main = ({
 	database,
 	db,
@@ -21,23 +25,34 @@ const Main = ({
 		return <Fragment key={`${idx}-${value}`} data={value} />;
 	});
 
-	async function getChatCounter() {
-		return await fetchData(db, 'counter/');
+	const toast = useToast();
+	const toastIdRef = React.useRef();
+
+	async function writeChat(id, message) {
+		writeData(db, `message/${channel}/${id}`, message);
 	}
 
 	async function sendChat(text) {
-		let id = await getChatCounter();
+		let id = await fetchData(db, "counter/");
 		let message = {
 			author: "system",
 			message: text,
 			timestamp: "Unknown Time",
 		};
 
-		writeData(db, `message/${channel}/${id.message}`, message);
 		database
 			.ref("counter/")
 			.child("message")
-			.set(firebase.database.ServerValue.increment(1));
+			.set(firebase.database.ServerValue.increment(1))
+			.then(() => {
+				writeChat(id.message, message);
+			})
+			.catch((e) => {
+				showErrorToast(
+					toast,
+					toastIdRef,
+				);
+			});
 	}
 
 	let display =

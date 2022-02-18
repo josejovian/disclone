@@ -30,8 +30,17 @@ export async function fetchRealTimeData(db, link) {
 
 export async function writeData(db, link, data) {
 	if (db === null || db === undefined) {
-		return;
+		return null;
 	}
 
-	set(ref(db, link), data);
+	let promise = new Promise(function (res, rej) {
+		set(ref(db, link), data).then(() => {
+			res(true);
+		}).catch(() => {
+			rej(false);
+		});
+	});
+
+	let result = await promise;
+	return result;
 }
