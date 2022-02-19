@@ -14,35 +14,36 @@ import {
 } from "firebase/auth";
 import { getDatabase, ref, set, child, get } from "firebase/database";
 import { connect } from "react-redux";
-import { mapStateToProps, setChannel, mapDispatchToProps } from "../utility/Redux";
+import {
+	mapStateToProps,
+	setChannel,
+	mapDispatchToProps,
+} from "../utility/Redux";
 import { writeData } from "../utility/Firebase";
-const Register = ({auth, db, login}) => {
+const Register = ({ auth, db, login }) => {
 	const toast = useToast();
 	const toastIdRef = React.useRef();
 	const history = useNavigate();
 
-	// console.log(props);
+	//
 
 	async function registerAccount(data) {
-		console.log("Register");
 		let result = null;
 		await createUserWithEmailAndPassword(auth, data.email, data.password)
 			.then((cred) => {
-				console.log(cred.user.uid);
 				const userData = {
-					name: data.name
+					name: data.name,
 				};
 				writeData(db, `user/${cred.user.uid}`, userData);
 				login(userData, cred.user.uid);
 			})
 			.catch((error) => {
 				result = error;
-				console.log(error);
+
 				showErrorToast(toast, toastIdRef);
 			})
 			.then(() => {
 				if (result === null) {
-					// 
 					login(true);
 					history("/");
 					showToast(
@@ -61,10 +62,20 @@ const Register = ({auth, db, login}) => {
 
 	return (
 		<AuthenticationLayout>
-			<Text fontSize="xl" fontWeight="bold" textAlign="center" color="white">
+			<Text
+				fontSize="xl"
+				fontWeight="bold"
+				textAlign="center"
+				color="white"
+			>
 				Sign Up
 			</Text>
-			<Text fontSize="md" textAlign="center" marginBottom="2rem" color="white">
+			<Text
+				fontSize="md"
+				textAlign="center"
+				marginBottom="2rem"
+				color="white"
+			>
 				Already have an account?{" "}
 				<Link to="/login">
 					<u>Login</u>

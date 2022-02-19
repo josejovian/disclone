@@ -76,10 +76,8 @@ const AuthenticationForm = ({ actionName, actionFunction }) => {
 	);
 	let initialValues = { email: "", name: "", password: "" };
 
-	if(actionName === "Login") {
-		nameElement = (
-			<></>
-		);
+	if (actionName === "Login") {
+		nameElement = <></>;
 		initialValues = { email: "", password: "" };
 	}
 

@@ -8,7 +8,7 @@ export function mapStateToProps(state) {
 		chats: state.chats,
 		db: state.db,
 		database: state.database,
-		auth: state.auth
+		auth: state.auth,
 	};
 }
 
@@ -20,12 +20,11 @@ export function setChannel(channel) {
 }
 
 export function configureFirebase(config) {
-	console.log("CONFIGURE FIREBASE!!!!!!!!!!!");
 	return {
 		type: "CONFIG_INITIALIZE",
 		db: config.db,
 		database: config.database,
-		auth: config.auth
+		auth: config.auth,
 	};
 }
 
@@ -50,8 +49,6 @@ export function sendChat(users) {
 }
 
 export function usersChannel(users) {
-	
-	
 	return {
 		type: "CHANNEL_USERS",
 		channelUsers: users,

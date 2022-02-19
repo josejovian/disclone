@@ -10,7 +10,6 @@ export async function fetchData(db, link) {
 			.then((snapshot) => {
 				let data = null;
 				if (snapshot.exists()) {
-					
 					data = snapshot.val();
 				}
 				res(data);
@@ -30,11 +29,13 @@ export async function writeData(db, link, data) {
 	}
 
 	let promise = new Promise(function (res, rej) {
-		set(ref(db, link), data).then(() => {
-			res(true);
-		}).catch(() => {
-			rej(false);
-		});
+		set(ref(db, link), data)
+			.then(() => {
+				res(true);
+			})
+			.catch(() => {
+				rej(false);
+			});
 	});
 
 	let result = await promise;

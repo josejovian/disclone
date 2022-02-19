@@ -20,7 +20,6 @@ const Channel = ({
 	id,
 	setChannel,
 }) => {
-	
 	const toast = useToast();
 	const toastIdRef = React.useRef();
 
@@ -33,12 +32,8 @@ const Channel = ({
 		let members = data.member;
 		let exists = false;
 
-		console.log(members);
-		
-		if(exists)
-			return;
+		if (exists) return;
 
-		console.log("ADD NEW MEMBER");
 		database
 			.ref(`channel/${id}`)
 			.child(`countMember`)
@@ -46,14 +41,11 @@ const Channel = ({
 			.then(() => {
 				writeData(db, `channel/${id}/member/`, {
 					...members,
-					uid: true
+					uid: true,
 				});
 			})
 			.catch((e) => {
-				showErrorToast(
-					toast,
-					toastIdRef,
-				);
+				showErrorToast(toast, toastIdRef);
 			});
 	}
 

@@ -36,7 +36,13 @@ const Fragment = ({ key, channelUsers, data, uid }) => {
 				borderRadius="md"
 				background={getColor(display)}
 			>
-				<Text color="#BDBDBD" fontWeight="700" lineHeight="1.6rem" fontSize="1.6rem" fontFamily="Segoe UI">
+				<Text
+					color="#BDBDBD"
+					fontWeight="700"
+					lineHeight="1.6rem"
+					fontSize="1.6rem"
+					fontFamily="Segoe UI"
+				>
 					{getInitials(display)}
 				</Text>
 			</Box>

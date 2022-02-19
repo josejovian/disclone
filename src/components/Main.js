@@ -20,6 +20,9 @@ import { showErrorToast } from "../utility/ShowToast";
 import { store } from "../index";
 
 const ChatFragments = ({ chats }) => {
+	/* Reference:
+	 * https://blog.logrocket.com/4-ways-to-render-large-lists-in-react/
+	 *********/
 	const threshold = 10;
 	const [count, setCount] = useState({
 		prev: chats.length - threshold,
@@ -33,12 +36,10 @@ const ChatFragments = ({ chats }) => {
 	const getMoreData = () => {
 		console.group("YES");
 		const floor = Math.max(count.prev - threshold, 0);
-		console.log(`Use: ${floor} ${count.prev}`);
+
 		setTimeout(() => {
 			let newData = chats.slice(floor, count.prev - 1);
 			setCurrent(newData.concat(current));
-			console.log(chats.length);
-			console.log(newData.concat(current).length);
 		}, 1000);
 		setCount({
 			prev: floor,
@@ -51,12 +52,11 @@ const ChatFragments = ({ chats }) => {
 	};
 
 	function checkAndGetMoreData() {
-		console.log("Spammy");
 		const root = document.getElementById("scrollable");
-		let scrollPercentage = 100 * root.scrollTop / (-root.scrollHeight+root.clientHeight); 
-		console.log(scrollPercentage);
-		if(hasMore && scrollPercentage >= 99) {
-			console.log("TOP!!!!!!!");
+		let scrollPercentage =
+			(100 * root.scrollTop) / (-root.scrollHeight + root.clientHeight);
+
+		if (hasMore && scrollPercentage >= 99) {
 			getMoreData();
 		}
 	}
@@ -80,9 +80,9 @@ const ChatFragments = ({ chats }) => {
 				paddingBottom="7.5rem"
 				zIndex="-1"
 			>
-				{current.map((value, idx) => 
-					(<Fragment key={`chat-${value.id}`} data={value} />)
-				)}
+				{current.map((value, idx) => (
+					<Fragment key={`chat-${value.id}`} data={value} />
+				))}
 			</Box>
 		</InfiniteScroll>
 	);

@@ -17,7 +17,10 @@ import {
 } from "@chakra-ui/react";
 import { MdAdd } from "react-icons/md";
 import { Formik, Field, Form } from "formik";
-import validateValue, { ValidationInput, validateWithRules } from "../utility/Validation";
+import validateValue, {
+	ValidationInput,
+	validateWithRules,
+} from "../utility/Validation";
 
 const NewChannel = ({ newChannel }) => {
 	const { isOpen, onOpen, onClose } = useDisclosure();
@@ -37,10 +40,20 @@ const NewChannel = ({ newChannel }) => {
 
 	const validateManager = {
 		name: (value) => {
-			return validateWithRules(columnRules, "Channel Name", "name", value);
+			return validateWithRules(
+				columnRules,
+				"Channel Name",
+				"name",
+				value
+			);
 		},
 		desc: (value) => {
-			return validateWithRules(columnRules, "Channel Description", "desc", value);
+			return validateWithRules(
+				columnRules,
+				"Channel Description",
+				"desc",
+				value
+			);
 		},
 	};
 

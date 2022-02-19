@@ -1,25 +1,23 @@
 export function getColor(str) {
-	if(str === undefined || str === null)
-		return;
+	if (str === undefined || str === null) return;
 
-	while(str.length < 6) {
-		str += str; 
+	while (str.length < 6) {
+		str += str;
 	}
 
 	let res = [100, 100, 100];
-	
-	for(let i = 0; i < 3; i++) {
-		const idx = 2*i + 1;
-		const sign = ((i + str.length) % 2 !== 0) ? -1 : 1;
-		res[i] += sign*(str.charCodeAt(idx - 1) + str.charCodeAt(idx)) % 80;
+
+	for (let i = 0; i < 3; i++) {
+		const idx = 2 * i + 1;
+		const sign = (i + str.length) % 2 !== 0 ? -1 : 1;
+		res[i] += (sign * (str.charCodeAt(idx - 1) + str.charCodeAt(idx))) % 80;
 	}
 
 	return `rgb(${res[0]},${res[1]},${res[2]})`;
 }
 
 export default function getInitials(str) {
-	if(str === undefined || str === null)
-		return;
+	if (str === undefined || str === null) return;
 
 	let initials = "";
 
