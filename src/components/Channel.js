@@ -30,8 +30,7 @@ const Channel = ({
 
 		let data = await fetchData(db, `channel/${id}`);
 		let members = data.member;
-		let exists = false;
-
+		let exists = (members[uid] === undefined) ? false : true ;
 		if (exists) return;
 
 		database
@@ -41,7 +40,7 @@ const Channel = ({
 			.then(() => {
 				writeData(db, `channel/${id}/member/`, {
 					...members,
-					uid: true,
+					[uid]: true,
 				});
 			})
 			.catch((e) => {
