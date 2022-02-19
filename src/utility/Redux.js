@@ -56,6 +56,8 @@ export function usersChannel(users) {
 }
 
 export function login(user, uid) {
+	localStorage.setItem("disclone-user", JSON.stringify(user));
+	localStorage.setItem("disclone-uid", uid);
 	return {
 		type: "USER_LOGIN",
 		user: user,
@@ -64,6 +66,7 @@ export function login(user, uid) {
 }
 
 export function logout() {
+	localStorage.setItem("disclone-user", null);
 	return {
 		type: "USER_LOGOUT",
 	};

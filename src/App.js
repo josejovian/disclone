@@ -135,7 +135,14 @@ const App = ({
 	 * * * * * * * * * * */
 
 	const PrivateRoute = () => {
-		return user ? <Outlet /> : <Navigate to="/login" />;
+		let ls_user = localStorage.getItem("disclone-user");
+		let ls_uid = localStorage.getItem("disclone-uid");
+
+		if(user === null && ls_uid !== null) {
+			login(JSON.parse(ls_user), ls_uid);
+		}
+		
+		return ls_user ? <Outlet /> : <Navigate to="/login" />;
 	};
 
 	useEffect(async () => {
@@ -154,7 +161,7 @@ const App = ({
 						});
 				}
 			} else {
-				logout();
+				// logout();
 			}
 		});
 	}, [user, uid]);

@@ -177,11 +177,9 @@ const Side = (props) => {
 					</Text>
 					<LogOut logout={logoutAccount} />
 				</Box>
-				<Skeleton height="100vh" isLoaded>
-					<Box position="fixed" top="4rem">
-						<ChannelList channels={props.channels} />
-					</Box>
-				</Skeleton>
+				<Box position="fixed" top="4rem">
+					<ChannelList channels={props.channels} />
+				</Box>
 			</Box>
 		</>
 	);
