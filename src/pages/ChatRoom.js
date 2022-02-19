@@ -5,14 +5,6 @@ import { useState } from "react";
 
 const ChatRoom = () => {
 
-	const [currentChannel, setChannel] = useState(0);
-
-	const chats = {
-		0: [
-			"Hello! "
-		]
-	}
-
 	return (
 		<div>
 			<Side />

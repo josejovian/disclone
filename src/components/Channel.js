@@ -1,40 +1,60 @@
-import { Box, Text, Image, Stack, HStack } from "@chakra-ui/react";
-import { mapStateToProps, mapDispatchToProps } from "../Redux";
+import { Box, Text, Image, Stack, HStack, useToast } from "@chakra-ui/react";
+import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { connect } from "react-redux";
-
+import getInitials from "../utility/Initials";
+import { fetchData, writeData } from "../utility/Firebase";
+import { getDatabase, ref, set, child, get } from "firebase/database";
+import firebase from "firebase/compat/app";
+import React, { useState, useRef } from "react";
+import { showErrorToast } from "../utility/ShowToast";
 const channelSize = "32px";
 
 const Channel = ({
 	isDummy,
 	channels,
+	database,
+	uid,
+	db,
 	name = "",
 	property,
 	id,
 	setChannel,
 }) => {
-	function getInitials(str) {
-		let initials = "";
+	
+	const toast = useToast();
+	const toastIdRef = React.useRef();
 
-		str = str.toUpperCase();
-
-		initials += str[0];
-
-		let space = false;
-		for (let i = 1; i < str.length && initials.length < 2; i++) {
-			if (str[i] == " ") space = true;
-			else if (space == true) {
-				initials += str[i];
-				space = false;
-			}
-		}
-
-		return initials;
-	}
-
-	function prepareChannel() {
+	async function prepareChannel() {
 		if (isDummy) return;
 
 		setChannel(id);
+
+		let data = await fetchData(db, `channel/${id}`);
+		let members = data.member;
+		let exists = false;
+
+		console.log(members);
+		
+		if(exists)
+			return;
+
+		console.log("ADD NEW MEMBER");
+		database
+			.ref(`channel/${id}`)
+			.child(`countMember`)
+			.set(firebase.database.ServerValue.increment(1))
+			.then(() => {
+				writeData(db, `channel/${id}/member/`, {
+					...members,
+					uid: true
+				});
+			})
+			.catch((e) => {
+				showErrorToast(
+					toast,
+					toastIdRef,
+				);
+			});
 	}
 
 	return (

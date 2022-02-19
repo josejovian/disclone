@@ -2,11 +2,13 @@ export function mapStateToProps(state) {
 	return {
 		channel: state.channel,
 		channels: state.channels,
+		uid: state.uid,
 		user: state.user,
 		channelUsers: state.channelUsers,
 		chats: state.chats,
 		db: state.db,
 		database: state.database,
+		auth: state.auth
 	};
 }
 
@@ -17,17 +19,13 @@ export function setChannel(channel) {
 	};
 }
 
-export function setDatabase(database) {
+export function configureFirebase(config) {
+	console.log("CONFIGURE FIREBASE!!!!!!!!!!!");
 	return {
-		type: "DATABASE_INITIALIZE",
-		database: database,
-	};
-}
-
-export function setDb(db) {
-	return {
-		type: "DB_INITIALIZE",
-		db: db,
+		type: "CONFIG_INITIALIZE",
+		db: config.db,
+		database: config.database,
+		auth: config.auth
 	};
 }
 
@@ -60,10 +58,11 @@ export function usersChannel(users) {
 	};
 }
 
-export function login(user) {
+export function login(user, uid) {
 	return {
 		type: "USER_LOGIN",
 		user: user,
+		uid: uid,
 	};
 }
 
@@ -74,8 +73,7 @@ export function logout() {
 }
 
 export const mapDispatchToProps = {
-	setDb,
-	setDatabase,
+	configureFirebase,
 	setChannel,
 	downloadChannel,
 	chatChannel,

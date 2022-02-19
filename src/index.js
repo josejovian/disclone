@@ -7,6 +7,15 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { createStore } from "redux";
+import { extendTheme } from '@chakra-ui/react'
+import { ColorModeScript, ColorModeProvider } from '@chakra-ui/react'
+
+const config = {
+  initialColorMode: 'dark',
+  useSystemColorMode: false,
+}
+
+const theme = extendTheme({ config });
 
 const initialState = {
 	channels: null,
@@ -16,19 +25,17 @@ const initialState = {
 	chats: [],
 	database: null,
 	db: null,
+	auth: null
 };
 
 export const reducer = (state = initialState, action) => {
 	switch (action.type) {
-		case "DATABASE_INITIALIZE":
-			return {
-				...state,
-				database: action.database,
-			};
-		case "DB_INITIALIZE":
+		case "CONFIG_INITIALIZE":
 			return {
 				...state,
 				db: action.db,
+				database: action.database,
+				auth: action.auth,
 			};
 		case "CHANNEL_SWITCH":
 			return {
@@ -53,8 +60,8 @@ export const reducer = (state = initialState, action) => {
 		case "USER_LOGIN":
 			return {
 				...state,
-				channel: action.channels[0],
 				user: action.user,
+				uid: action.uid,
 			};
 		case "USER_LOGOUT":
 			return {
@@ -74,7 +81,9 @@ ReactDOM.render(
 		<Provider store={store}>
 			<ChakraProvider>
 				<BrowserRouter>
-					<App />
+					<ColorModeProvider options={theme}>
+						<App />
+					</ColorModeProvider>
 				</BrowserRouter>
 			</ChakraProvider>
 		</Provider>

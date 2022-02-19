@@ -5,18 +5,23 @@ import {
 	HStack,
 	SkeletonCircle,
 	useToast,
+	IconButton,
 } from "@chakra-ui/react";
 
 import React, { useRef } from "react";
-import { mapStateToProps, mapDispatchToProps } from "../Redux";
+import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { connect } from "react-redux";
 
-import { writeData, fetchData } from "../Firebase";
+import { writeData, fetchData } from "../utility/Firebase";
 import firebase from "firebase/compat/app";
 
 import Channel from "./Channel";
 import NewChannel from "./NewChannel";
-import { showErrorToast } from "./ShowToast";
+import { showErrorToast, showToast } from "../utility/ShowToast";
+import { MdLogout } from "react-icons/md";
+import { getAuth, signOut } from "firebase/auth";
+import { useNavigate } from "react-router";
+import getInitials, { getColor } from "../utility/Initials";
 
 const SkeletonChannel = () => {
 	return (
@@ -39,9 +44,40 @@ export const ChannelList = ({ channels = [] }) => {
 	});
 };
 
+const channelSize = "32px";
+
+const LogOut = ({ logout }) => {
+	return (
+		<IconButton
+			colorScheme="red"
+			icon={<MdLogout />}
+			minWidth="0"
+			width="2rem"
+			height="2rem"
+			onClick={logout}
+		/>
+	);
+};
+
 const Side = (props) => {
 	const toast = useToast();
 	const toastIdRef = React.useRef();
+	const history = useNavigate();
+
+	const barStyle = {
+		display: "flex",
+		position: "fixed",
+		width: "calc(384px)",
+		height: "3.2rem",
+		top: "0",
+		left: "0",
+		paddingLeft: "2rem",
+		paddingRight: "2rem",
+		justifyContent: "space-between",
+		alignItems: "center",
+		shadow: "md",
+		zIndex: "4",
+	};
 
 	async function newChannel(data) {
 		let id = await fetchData(props.db, "counter/");
@@ -71,6 +107,25 @@ const Side = (props) => {
 			});
 	}
 
+	async function logoutAccount() {
+		signOut(props.auth)
+			.then(() => {
+				history("/");
+				showToast(
+					toast,
+					toastIdRef,
+					"Logout successful!",
+					"See you later.",
+					"success",
+					2000,
+					true
+				);
+			})
+			.catch((error) => {
+				showErrorToast();
+			});
+	}
+
 	return (
 		<>
 			<Box
@@ -82,20 +137,7 @@ const Side = (props) => {
 				bg="#120F13"
 				zIndex="4"
 			>
-				<Box
-					display="flex"
-					position="fixed"
-					width="calc(384px)"
-					height="3.2rem"
-					top="0"
-					left="0"
-					paddingLeft="2rem"
-					paddingRight="2rem"
-					justifyContent="space-between"
-					alignItems="center"
-					shadow="md"
-					zIndex="4"
-				>
+				<Box {...barStyle}>
 					<Text
 						lineHeight="1rem"
 						fontSize="1.2rem"
@@ -105,6 +147,35 @@ const Side = (props) => {
 						Channels
 					</Text>
 					<NewChannel newChannel={newChannel} />
+				</Box>
+				<Box {...barStyle} top="unset" bottom="0">
+					<Box width={channelSize}>
+						<Box
+							display="flex"
+							justifyContent="center"
+							minWidth={channelSize}
+							width={channelSize}
+							height={channelSize}
+							borderRadius="md"
+							background={getColor(props.user.name)}
+						>
+							<Text
+								color="#BDBDBD"
+								fontWeight="700"
+								lineHeight="2rem"
+							>
+								{getInitials(props.user.name)}
+							</Text>
+						</Box>
+					</Box>
+					<Text
+						lineHeight="1rem"
+						fontSize="1rem"
+						fontFamily="Noto Sans"
+					>
+						{props.user.name}
+					</Text>
+					<LogOut logout={logoutAccount} />
 				</Box>
 				<Skeleton height="100vh" isLoaded>
 					<Box position="fixed" top="4rem">

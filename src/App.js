@@ -2,6 +2,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import Side from "./components/Side";
 import Main from "./components/Main";
 import ChatRoom from "./pages/ChatRoom";
+import Register from "./pages/Register";
 import "firebase/database";
 import "firebase/compat/database";
 import firebase from "firebase/compat/app";
@@ -13,9 +14,13 @@ import {
 } from "firebase/auth";
 import { getDatabase, ref, set, child, get, onValue } from "firebase/database";
 import { useEffect, useState } from "react";
-import { mapStateToProps, mapDispatchToProps, setChannel } from "./Redux";
+import { mapStateToProps, mapDispatchToProps, setChannel, logout } from "./utility/Redux";
 import { connect } from "react-redux";
-import { fetchData } from "./Firebase";
+import { fetchData } from "./utility/Firebase";
+import { Navigate, Switch, Outlet } from 'react-router'
+import Login from "./pages/Login";
+import { showErrorToast } from "./utility/ShowToast";
+
 const config = {
 	apiKey: process.env.REACT_APP_API_KEY,
 	authDomain: process.env.REACT_APP_AUTH_DOMAIN,
@@ -23,39 +28,55 @@ const config = {
 	projectId: process.env.PROJECT_ID,
 };
 
-const app = firebase.initializeApp(config);
-const auth = getAuth();
-const db = getDatabase(app);
+const c_app = firebase.initializeApp(config);
+const c_auth = getAuth();
+const c_db = getDatabase(c_app);
+const c_database = firebase.database();
 
 const App = ({
+	auth,
 	chats,
+	uid,
 	channel,
 	channels,
-	setDatabase,
-	setDb,
+	db,
+	database,
+	configureFirebase,
 	setChannel,
 	downloadChannel,
 	chatChannel,
 	usersChannel,
+	user,
+	login,
+	logout
 }) => {
 	const [init, setInit] = useState(false);
 
-	async function initFirebase() {
-		if (setDatabase === undefined) return;
+	/*
+	 * Firebase
+	 * Functions
+	 * * * * * * * * * * */
 
-		setDatabase(firebase.database());
-		setDb(db);
+	// async function configureFirebase() {
+		// setDatabase(firebase.database());
+	if(db !== c_db || auth !== c_auth || database !== c_database) {
+		console.log("ADA YANG BANDEL");
+		configureFirebase({
+			db: c_db,
+			auth: c_auth,
+			database: c_database
+		});
 	}
 
 	async function initialize() {
-		let rawData = await fetchData(db, `channel/`);
+		let rawData = await fetchData(c_db, `channel/`);
 		downloadChannel(Object.values(rawData));
 		setChannel(0);
 	}
 
 	async function getChannels() {
-		onValue(ref(db, `channel/`), (snapshot) => {
-			if (snapshot.exists()) {
+		onValue(ref(c_db, `channel/`), (snapshot) => {
+			if (snapshot.exists() && Object.values(snapshot.val()) !== channels) {
 				const data = snapshot.val();
 				downloadChannel(Object.values(data));
 			}
@@ -64,8 +85,8 @@ const App = ({
 
 	async function getChatOfChannel() {
 		if (channel === undefined) return;
-		onValue(ref(db, `message/${channel}/`), (snapshot) => {
-			if (snapshot.exists()) {
+		onValue(ref(c_db, `message/${channel}/`), (snapshot) => {
+			if (snapshot.exists() && Object.values(snapshot.val()) !== chats) {
 				const data = snapshot.val();
 				chatChannel(Object.values(data));
 			}
@@ -78,8 +99,9 @@ const App = ({
 		let members = channels[channel].member;
 		let memberOfChannel = {};
 
-		for await (const memberId of members) {
-			let rawData = await fetchData(db, `user/${memberId}/`);
+		console.log(members);
+		for await (const [memberId, status] of Object.entries(members)) {
+			let rawData = await fetchData(c_db, `user/${memberId}/`);
 			if (rawData !== null) {
 				memberOfChannel = { ...memberOfChannel, [memberId]: rawData };
 				memberOfChannel[memberId] = rawData;
@@ -89,22 +111,59 @@ const App = ({
 		usersChannel(JSON.stringify(memberOfChannel));
 	}
 
+
+	
 	useEffect(async () => {
-		await initFirebase();
-		initialize();
-		getChannels();
+		console.log("First Time Set Up");
+		// await configureFirebase();
+		await initialize();
+		await getChannels();
 	}, [init]);
 
 	useEffect(async () => {
+		console.log("NEW CHANNEL");
 		chatChannel([]);
 		await getChatOfChannel();
 		await getMemberOfChannel();
 	}, [channel, channels]);
 
+	/*
+	 * Authentication
+	 * Functions
+	 * * * * * * * * * * */
+
+	const PrivateRoute = () => {
+		return user ? <Outlet /> : <Navigate to="/login" />;
+	}
+
+	useEffect(async () => {
+		c_auth.onAuthStateChanged(c_user => {
+			if(c_user.uid === uid)
+				return;
+			if(c_user) {
+				if(c_user.uid !== uid) {
+					get(child(ref(c_db), `user/${c_user.uid}`)).then((snapshot) => {
+						if (snapshot.exists()) {
+							login(snapshot.val(), c_user.uid);
+						}
+					}).catch((error) => {
+						showErrorToast();
+					})
+				}
+			} else {
+				logout();
+			}
+		});
+	}, [user, uid]);
+
 	return (
 		<div className="App">
 			<Routes>
-				<Route path="/" element={<ChatRoom />} />
+				<Route exact path="/" element={<PrivateRoute />} >
+					<Route exact path="/" element={<ChatRoom />} />
+				</Route>
+				<Route path="/register" element={<Register />} />
+				<Route path="/login" element={<Login />} />
 			</Routes>
 		</div>
 	);

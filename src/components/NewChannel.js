@@ -17,49 +17,10 @@ import {
 } from "@chakra-ui/react";
 import { MdAdd } from "react-icons/md";
 import { Formik, Field, Form } from "formik";
-
-import validateValue from "../Validation";
+import validateValue, { ValidationInput, validateWithRules } from "../utility/Validation";
 
 const NewChannel = ({ newChannel }) => {
 	const { isOpen, onOpen, onClose } = useDisclosure();
-
-	const NewChannelInput = ({ name, display, type }) => {
-		let input = (field) => (
-			<Input
-				{...field}
-				id={name}
-				placeholder={display}
-				autoComplete="off"
-			/>
-		);
-
-		if (type === "textarea") {
-			input = (field) => (
-				<Textarea
-					{...field}
-					id={name}
-					placeholder={display}
-					autoComplete="off"
-					size="md"
-					maxHeight="10rem"
-				/>
-			);
-		}
-
-		return (
-			<Field name={name} validate={validateManager[name]}>
-				{({ field, form }) => (
-					<FormControl
-						marginTop="1rem"
-						isInvalid={form.errors[name] && form.touched[name]}
-					>
-						{input(field)}
-						<FormErrorMessage>{form.errors[name]}</FormErrorMessage>
-					</FormControl>
-				)}
-			</Field>
-		);
-	};
 
 	const columnRules = {
 		name: {
@@ -76,32 +37,12 @@ const NewChannel = ({ newChannel }) => {
 
 	const validateManager = {
 		name: (value) => {
-			return validateWithRules("Channel Name", "name", value);
+			return validateWithRules(columnRules, "Channel Name", "name", value);
 		},
 		desc: (value) => {
-			return validateWithRules("Channel Description", "desc", value);
+			return validateWithRules(columnRules, "Channel Description", "desc", value);
 		},
 	};
-
-	function validateWithRules(display, name, value) {
-		let success = true,
-			message;
-
-		let rules = columnRules[name];
-		for (const [rule, params] of Object.entries(rules)) {
-			const entry = {};
-			entry.rule = rule;
-			entry.params = params;
-			const validationStatus = validateValue(entry, display, value);
-			if (validationStatus.status == false) {
-				success = false;
-				message = validationStatus.message;
-				break;
-			}
-		}
-
-		return message;
-	}
 
 	return (
 		<>
@@ -128,12 +69,14 @@ const NewChannel = ({ newChannel }) => {
 						{(props) => (
 							<Form>
 								<ModalBody padding="0 1rem!important">
-									<NewChannelInput
+									<ValidationInput
+										validateManager={validateManager}
 										name="name"
 										display="Channel Name"
 										type="text"
 									/>
-									<NewChannelInput
+									<ValidationInput
+										validateManager={validateManager}
 										name="desc"
 										display="Channel Description"
 										type="textarea"

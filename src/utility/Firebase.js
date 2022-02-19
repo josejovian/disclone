@@ -24,10 +24,6 @@ export async function fetchData(db, link) {
 	return result;
 }
 
-export async function fetchRealTimeData(db, link) {
-	
-}
-
 export async function writeData(db, link, data) {
 	if (db === null || db === undefined) {
 		return null;
