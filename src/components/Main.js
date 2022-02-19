@@ -19,13 +19,14 @@ import firebase from "firebase/compat/app";
 import { showErrorToast } from "../utility/ShowToast";
 import { store } from "../index";
 
-const ChatFragments = ({ chats }) => {
+const ChatFragments = ({ chats=[] }) => {
 	/* Reference:
 	 * https://blog.logrocket.com/4-ways-to-render-large-lists-in-react/
 	 *********/
+
 	const threshold = 10;
 	const [count, setCount] = useState({
-		prev: chats.length - threshold,
+		prev: Math.max(chats.length - threshold, 0),
 		next: chats.length,
 	});
 	const [hasMore, setHasMore] = useState(true);
@@ -34,7 +35,6 @@ const ChatFragments = ({ chats }) => {
 	const [init, setInit] = useState(false);
 
 	const getMoreData = () => {
-		console.group("YES");
 		const floor = Math.max(count.prev - threshold, 0);
 
 		setTimeout(() => {
@@ -45,7 +45,6 @@ const ChatFragments = ({ chats }) => {
 			prev: floor,
 			next: count.next,
 		});
-		console.groupEnd();
 		if (floor === 0) {
 			setHasMore(false);
 		}
@@ -132,6 +131,9 @@ const Main = ({
 			? channels[channel].name
 			: "Unknown Channel";
 
+	let cannotSendChat =
+		(channel !== null && channels !== null) ? (channels[channel].property.isReadOnly) : false;
+
 	return (
 		<Box
 			display="flex"
@@ -179,7 +181,7 @@ const Main = ({
 					</Text>
 				</Box>
 			</Box>
-			<SendChat chat={sendChat} />
+			<SendChat chat={sendChat} isDisabled={cannotSendChat} />
 		</Box>
 	);
 };

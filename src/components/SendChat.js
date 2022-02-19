@@ -3,7 +3,7 @@ import { MdSend } from "react-icons/md";
 
 const profileSize = "64px";
 
-const SendChat = ({ chat }) => {
+const SendChat = ({ chat, isDisabled }) => {
 	function sendChat() {
 		let text = document.getElementById("chat");
 
@@ -47,6 +47,7 @@ const SendChat = ({ chat }) => {
 					placeholder="Type message here"
 					autoComplete="off"
 					onKeyUp={enter}
+					isDisabled={isDisabled}
 				/>
 				<IconButton
 					position="absolute"
@@ -57,6 +58,7 @@ const SendChat = ({ chat }) => {
 					icon={<Icon as={MdSend} />}
 					zIndex="1"
 					onClick={sendChat}
+					isDisabled={isDisabled}
 				/>
 			</Box>
 		</Box>
