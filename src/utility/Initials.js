@@ -6,8 +6,7 @@ export function BoxedInitials({
 	initials,
 	ignoreFallback = false,
 }) {
-
-	let letterStyle = {
+	let letterWrapperStyle = {
 		position: "absolute",
 		top: "0",
 		left: "0",
@@ -18,7 +17,16 @@ export function BoxedInitials({
 		width: size,
 		height: size,
 		borderRadius: "md",
-		background: color
+		background: color,
+		userSelect: "none",
+	};
+
+	let letterStyle = {
+		color: "#FFFFFF",
+		fontSize: `calc(${size} - 1rem)`,
+		fontWeight: "700",
+		lineHeight: "2rem",
+		userSelect: "none",
 	}
 
 	let fallback = (
@@ -35,28 +43,20 @@ export function BoxedInitials({
 	);
 
 	if (ignoreFallback) {
-		fallback = (
-			<>
-			</>
-		);
+		fallback = <></>;
 
-		letterStyle = {
-			...letterStyle,
+		letterWrapperStyle = {
+			...letterWrapperStyle,
 			position: undefined,
 			top: undefined,
-			left: undefined
-		}
+			left: undefined,
+		};
 	}
 
 	let letterIcon = (
-		<Box
-			{...letterStyle}
-		>
+		<Box {...letterWrapperStyle}>
 			<Text
-				color="#BDBDBD"
-				fontSize={`calc(${size} - 1rem)`}
-				fontWeight="700"
-				lineHeight="2rem"
+				{...letterStyle}
 			>
 				{initials}
 			</Text>
@@ -78,23 +78,40 @@ export function BoxedInitials({
 export function getColor(str) {
 	if (str === undefined || str === null) return;
 
-	while (str.length < 6) {
-		str += str;
+	let _min = 1000,
+		_max = -1,
+		_sum = 0,
+		_avg = 0;
+
+	for (let i = 0; i < str.length; i++) {
+		const char = str.charCodeAt(i);
+		if (_min > char) _min = char;
+
+		if (char > _max) _max = char;
+
+		_sum += char;
 	}
+	_avg = Math.floor(_sum / str.length);
 
-	let res = [50, 50, 50];
+	/* Reference:
+	 * https://flatuicolors.com/palette/defo
+	 */
+	let palette = [
+		'#16a085',
+		'#2980b9',
+		'#8e44ad',
+		'#f39c12',
+		'#d35400',
+		'#c0392b',
+		'#2c3e50',
+	]
 
-	for (let i = 0; i < 3; i++) {
-		const idx = 2 * i + 1;
-		let sign = (i + str.length) % 2 === 0 ? -1 : 1;
-		
-		res[i] += (sign * (str.charCodeAt(idx - 1) + str.charCodeAt(idx))) % 130;
-		if(str.length % 3 === i) {
-			res[i] = 50;
-		}
-	}
+	const _num = Math.floor(
+		str.length * (_avg + _sum) / (_max - _min)
+	) % (palette.length);
+		// console.log(_num);
 
-	return `rgb(${res[0]},${res[1]},${res[2]})`;
+	return palette[_num];
 }
 
 export default function getInitials(str) {
@@ -115,6 +132,5 @@ export default function getInitials(str) {
 		}
 	}
 
-	
 	return initials;
 }
