@@ -56,7 +56,7 @@ const App = ({
 	logout,
 }) => {
 	const [init, setInit] = useState(false);
-
+	const [logged, setLogged] = useState(false);
 	/*
 	 * Firebase
 	 * Functions
@@ -64,15 +64,21 @@ const App = ({
 
 	// async function configureFirebase() {
 	// setDatabase(firebase.database());
-	if (db !== c_db || auth !== c_auth || database !== c_database) {
+	if (
+		init === false &&
+		(db !== c_db || auth !== c_auth || database !== c_database)
+	) {
 		configureFirebase({
 			db: c_db,
 			auth: c_auth,
 			database: c_database,
 		});
+		setInit(true);
 	}
 
 	async function initialize() {
+		if (user === null) return;
+
 		let rawData = await fetchData(c_db, `channel/`);
 		downloadChannel(Object.values(rawData));
 		setChannel(0);
@@ -92,6 +98,7 @@ const App = ({
 
 	async function getChatOfChannel() {
 		if (channel === undefined) return;
+
 		onValue(ref(c_db, `message/${channel}/`), (snapshot) => {
 			if (snapshot.exists() && Object.values(snapshot.val()) !== chats) {
 				const data = snapshot.val();
@@ -101,7 +108,12 @@ const App = ({
 	}
 
 	async function getMemberOfChannel() {
-		if (channels === null || channel === null) return;
+		if (
+			channels === null ||
+			channel === null ||
+			channels[channel] === undefined
+		)
+			return;
 
 		let members = channels[channel].member;
 		let memberOfChannel = {};
@@ -118,16 +130,22 @@ const App = ({
 	}
 
 	useEffect(async () => {
-		// await configureFirebase();
 		await initialize();
 		await getChannels();
-	}, [init]);
+	}, [user, init]);
 
-	useEffect(async () => {
+	async function switchChannelData() {
 		chatChannel([]);
 		await getChatOfChannel();
 		await getMemberOfChannel();
-	}, [channel, channels]);
+	}
+
+	useEffect(async () => {
+		if (user === null) {
+			return;
+		}
+		await switchChannelData();
+	}, [user, channel, channels]);
 
 	/*
 	 * Authentication
@@ -138,28 +156,27 @@ const App = ({
 		let ls_user = localStorage.getItem("disclone-user");
 		let ls_uid = localStorage.getItem("disclone-uid");
 
-		if(user === null && ls_uid !== null) {
+		if (user === null && ls_uid !== null) {
 			login(JSON.parse(ls_user), ls_uid);
 		}
-		
+
 		return ls_user ? <Outlet /> : <Navigate to="/login" />;
 	};
 
 	useEffect(async () => {
 		c_auth.onAuthStateChanged((c_user) => {
-			if (c_user.uid === uid) return;
-			if (c_user) {
-				if (c_user.uid !== uid) {
-					get(child(ref(c_db), `user/${c_user.uid}`))
-						.then((snapshot) => {
-							if (snapshot.exists()) {
-								login(snapshot.val(), c_user.uid);
-							}
-						})
-						.catch((error) => {
-							showErrorToast();
-						});
-				}
+			if (logged && c_user !== null) return;
+			if (!logged && c_user !== null) {
+				get(child(ref(c_db), `user/${c_user.uid}`))
+					.then((snapshot) => {
+						if (snapshot.exists()) {
+							login(snapshot.val(), c_user.uid);
+							setLogged(true);
+						}
+					})
+					.catch((error) => {
+						showErrorToast();
+					});
 			} else {
 				// logout();
 			}

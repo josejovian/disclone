@@ -33,6 +33,8 @@ const Register = ({ auth, db, login }) => {
 			.then((cred) => {
 				const userData = {
 					name: data.name,
+					role: 'member',
+					isMuted: false,
 				};
 				writeData(db, `user/${cred.user.uid}`, userData);
 				login(userData, cred.user.uid);

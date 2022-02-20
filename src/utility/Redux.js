@@ -9,6 +9,7 @@ export function mapStateToProps(state) {
 		db: state.db,
 		database: state.database,
 		auth: state.auth,
+		focus: state.focus,
 	};
 }
 
@@ -16,6 +17,14 @@ export function setChannel(channel) {
 	return {
 		type: "CHANNEL_SWITCH",
 		channel: channel,
+		focus: channel
+	};
+}
+
+export function removeFocus() {
+	return {
+		type: "FOCUS_REMOVE",
+		focus: null
 	};
 }
 
@@ -56,6 +65,8 @@ export function usersChannel(users) {
 }
 
 export function login(user, uid) {
+	
+	
 	localStorage.setItem("disclone-user", JSON.stringify(user));
 	localStorage.setItem("disclone-uid", uid);
 	return {
@@ -66,7 +77,8 @@ export function login(user, uid) {
 }
 
 export function logout() {
-	localStorage.setItem("disclone-user", null);
+	localStorage.removeItem("disclone-user");
+	localStorage.removeItem("disclone-uid");
 	return {
 		type: "USER_LOGOUT",
 	};
@@ -75,6 +87,7 @@ export function logout() {
 export const mapDispatchToProps = {
 	configureFirebase,
 	setChannel,
+	removeFocus,
 	downloadChannel,
 	chatChannel,
 	usersChannel,

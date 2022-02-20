@@ -19,13 +19,14 @@ const theme = extendTheme({ config });
 
 const initialState = {
 	channels: null,
-	channel: null,
+	channel: 0,
 	user: null,
 	channelUsers: null,
 	chats: [],
 	database: null,
 	db: null,
 	auth: null,
+	focus: 0,
 };
 
 export const reducer = (state = initialState, action) => {
@@ -37,10 +38,16 @@ export const reducer = (state = initialState, action) => {
 				database: action.database,
 				auth: action.auth,
 			};
+		case "FOCUS_REMOVE":
+			return {
+				...state,
+				focus: null,
+			};
 		case "CHANNEL_SWITCH":
 			return {
 				...state,
 				channel: action.channel,
+				focus: action.focus
 			};
 		case "CHANNEL_ALL":
 			return {
@@ -81,9 +88,7 @@ ReactDOM.render(
 		<Provider store={store}>
 			<ChakraProvider>
 				<BrowserRouter>
-					<ColorModeProvider options={theme}>
-						<App />
-					</ColorModeProvider>
+					<App />
 				</BrowserRouter>
 			</ChakraProvider>
 		</Provider>

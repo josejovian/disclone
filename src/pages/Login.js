@@ -32,7 +32,7 @@ const Login = ({ auth, db, login }) => {
 		await signInWithEmailAndPassword(auth, data.email, data.password)
 			.catch((error) => {
 				result = error;
-
+				
 				showErrorToast(toast, toastIdRef);
 			})
 			.then(() => {

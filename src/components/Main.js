@@ -131,6 +131,7 @@ const Main = ({
 			? channels[channel].name
 			: "Unknown Channel";
 
+	
 	let cannotSendChat =
 		(channel !== null && channels !== null) ? (channels[channel].property.isReadOnly) : false;
 
