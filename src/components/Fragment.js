@@ -3,6 +3,7 @@ import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { connect } from "react-redux";
 import { useEffect, useState } from "react";
 import getInitials, { getColor } from "../utility/Initials";
+import { BoxedInitials } from "../utility/Initials";
 const profileSize = "48px";
 
 const Fragment = ({ key, channelUsers, data, uid }) => {
@@ -19,34 +20,10 @@ const Fragment = ({ key, channelUsers, data, uid }) => {
 
 	if (channelUsers === null) return <Skeleton height="32px" width="32px" />;
 
-	let letterIcon = <></>;
-
-	if (data.author === uid) {
-		letterIcon = (
-			<Box
-				display="flex"
-				justifyContent="center"
-				alignItems="center"
-				position="absolute"
-				top="0"
-				left="0"
-				minWidth={profileSize}
-				width={profileSize}
-				height={profileSize}
-				borderRadius="md"
-				background={getColor(display)}
-			>
-				<Text
-					color="#BDBDBD"
-					fontWeight="700"
-					lineHeight="1.6rem"
-					fontSize="1.6rem"
-					fontFamily="Segoe UI"
-				>
-					{getInitials(display)}
-				</Text>
-			</Box>
-		);
+	let _initials = null, _color = 'gray';
+	if(display !== "Unknown User" && data.author !== "system") {
+		_initials = getInitials(display);
+		_color = getColor(display);
 	}
 
 	return (
@@ -56,20 +33,7 @@ const Fragment = ({ key, channelUsers, data, uid }) => {
 			marginTop="2rem"
 			fontFamily="Noto Sans"
 		>
-			<Box width={profileSize} position="relative">
-				<Image
-					position="absolute"
-					top="0"
-					left="0"
-					minWidth={profileSize}
-					width={profileSize}
-					height={profileSize}
-					borderRadius="lg"
-					src={data.picture}
-					fallbackSrc="https://via.placeholder.com/150"
-				/>
-				{letterIcon}
-			</Box>
+			<BoxedInitials size="3rem" color={_color} initials={_initials} />
 			<Stack marginLeft="2rem">
 				<Box display="flex" alignItems="center">
 					<Text color="#828282" fontWeight="700">

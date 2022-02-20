@@ -1,7 +1,7 @@
 import { Box, Text, Image, Stack, HStack, useToast } from "@chakra-ui/react";
 import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { connect } from "react-redux";
-import getInitials from "../utility/Initials";
+import getInitials, { BoxedInitials } from "../utility/Initials";
 import { fetchData, writeData } from "../utility/Firebase";
 import { getDatabase, ref, set, child, get } from "firebase/database";
 import firebase from "firebase/compat/app";
@@ -19,6 +19,7 @@ const Channel = ({
 	property,
 	id,
 	setChannel,
+	setFocus
 }) => {
 	const toast = useToast();
 	const toastIdRef = React.useRef();
@@ -27,7 +28,6 @@ const Channel = ({
 		if (isDummy) return;
 
 		setChannel(id);
-
 		let data = await fetchData(db, `channel/${id}`);
 		let members = data.member;
 		let exists = (members[uid] === undefined) ? false : true ;
@@ -48,6 +48,9 @@ const Channel = ({
 			});
 	}
 
+	if(id === 0)
+		prepareChannel();
+
 	return (
 		<Box
 			width="384px"
@@ -63,7 +66,8 @@ const Channel = ({
 				backgroundColor: "#3C393F",
 			}}
 		>
-			<Box width={channelSize}>
+			<BoxedInitials size="2rem" color="#252329" initials={getInitials(name)} />
+			{/*<Box width={channelSize}>
 				<Box
 					display="flex"
 					justifyContent="center"
@@ -77,7 +81,7 @@ const Channel = ({
 						{getInitials(name)}
 					</Text>
 				</Box>
-			</Box>
+			</Box>*/}
 			<Text
 				color="#BDBDBD"
 				fontWeight="700"
