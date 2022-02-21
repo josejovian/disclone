@@ -2,7 +2,7 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 
-import { Box, Text, useToast } from "@chakra-ui/react";
+import { Box, Text, useToast, IconButton } from "@chakra-ui/react";
 
 import React, { useState, useRef, useEffect } from "react";
 import { connect } from "react-redux";
@@ -11,6 +11,7 @@ import {
 	setChannel,
 	mapDispatchToProps,
 } from "../utility/Redux";
+import { MdMenu } from "react-icons/md";
 
 import { writeData, fetchData } from "../utility/Firebase";
 import firebase from "firebase/compat/app";
@@ -99,7 +100,18 @@ const ChatFragments = ({ chats = [] }) => {
 /*                               Main Component                               */
 /* -------------------------------------------------------------------------- */
 
-const Main = ({ database, db, chats = [], channel, channels, uid }) => {
+const Main = ({
+	database,
+	db,
+	chats = [],
+	user,
+	channel,
+	channels,
+	uid,
+	drawer,
+	openDrawer,
+	closeDrawer,
+}) => {
 	const toast = useToast();
 	const toastIdRef = React.useRef();
 
@@ -138,12 +150,31 @@ const Main = ({ database, db, chats = [], channel, channels, uid }) => {
 			? channels[channel].property.isReadOnly
 			: false;
 
+	let mainWidth = { base: "100vw", lg: "calc(100vw - 384px)" };
+
+	const Mask = () => {
+		return (
+			<Box
+				id="mask"
+				display={drawer !== "" ? "unset" : "none"}
+				position="fixed"
+				width="100vw"
+				height="100vh"
+				top="0"
+				left="0"
+				zIndex="2"
+				background="rgba(0.2, 0.2, 0.2, 0.4)"
+				onClick={() => closeDrawer()}
+			></Box>
+		);
+	};
+
 	return (
 		<Box
 			display="flex"
 			flexDirection="column-reverse"
 			position="fixed"
-			width="calc(100vw - 384px)"
+			width={mainWidth}
 			height="100vh"
 			top="0"
 			right="0"
@@ -153,6 +184,7 @@ const Main = ({ database, db, chats = [], channel, channels, uid }) => {
 			overflowY="auto"
 			id="scrollable"
 		>
+			<Mask />
 			<ChatFragments chats={chats} />
 			<Box
 				display="flex"
@@ -165,7 +197,7 @@ const Main = ({ database, db, chats = [], channel, channels, uid }) => {
 			>
 				<Box
 					display="flex"
-					width="calc(100vw - 384px)"
+					width={mainWidth}
 					position="relative"
 					justifyContent="flex-start"
 					paddingLeft="4rem"
@@ -175,6 +207,15 @@ const Main = ({ database, db, chats = [], channel, channels, uid }) => {
 					bg="#252329"
 					shadow="md"
 				>
+					<IconButton
+						colorScheme="gray"
+						icon={<MdMenu />}
+						minWidth="0"
+						width="2rem"
+						height="2rem"
+						marginRight="2rem"
+						onClick={() => openDrawer()}
+					/>
 					<Text
 						lineHeight="1rem"
 						fontSize="1.2rem"
@@ -185,7 +226,11 @@ const Main = ({ database, db, chats = [], channel, channels, uid }) => {
 					</Text>
 				</Box>
 			</Box>
-			<SendChat chat={sendChat} isDisabled={cannotSendChat} />
+			<SendChat
+				chat={sendChat}
+				isDisabled={cannotSendChat}
+				mainWidth={mainWidth}
+			/>
 		</Box>
 	);
 };

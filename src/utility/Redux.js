@@ -10,6 +10,21 @@ export function mapStateToProps(state) {
 		database: state.database,
 		auth: state.auth,
 		focus: state.focus,
+		drawer: state.drawer,
+	};
+}
+
+export function openDrawer() {
+	return {
+		type: "DRAWER_OPEN",
+		drawer: "drawer-open",
+	};
+}
+
+export function closeDrawer() {
+	return {
+		type: "DRAWER_CLOSE",
+		drawer: "",
 	};
 }
 
@@ -17,14 +32,14 @@ export function setChannel(channel) {
 	return {
 		type: "CHANNEL_SWITCH",
 		channel: channel,
-		focus: channel
+		focus: channel,
 	};
 }
 
 export function removeFocus() {
 	return {
 		type: "FOCUS_REMOVE",
-		focus: null
+		focus: null,
 	};
 }
 
@@ -65,8 +80,6 @@ export function usersChannel(users) {
 }
 
 export function login(user, uid) {
-	
-	
 	localStorage.setItem("disclone-user", JSON.stringify(user));
 	localStorage.setItem("disclone-uid", uid);
 	return {
@@ -85,6 +98,8 @@ export function logout() {
 }
 
 export const mapDispatchToProps = {
+	openDrawer,
+	closeDrawer,
 	configureFirebase,
 	setChannel,
 	removeFocus,

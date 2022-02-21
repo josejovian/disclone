@@ -9,7 +9,7 @@ import { MdSend } from "react-icons/md";
 /*                      Send chat Input form and Button                       */
 /* -------------------------------------------------------------------------- */
 
-const SendChat = ({ chat, isDisabled }) => {
+const SendChat = ({ chat, isDisabled, mainWidth }) => {
 	function sendChat() {
 		let text = document.getElementById("chat");
 
@@ -36,7 +36,14 @@ const SendChat = ({ chat, isDisabled }) => {
 	}
 
 	return (
-		<Box position="fixed" width="calc(100% - 384px - 128px)" bottom="2rem">
+		<Box
+			position="fixed"
+			width={{
+				base: "calc(100vw - 128px)",
+				lg: "calc(100vw - 384px - 128px)",
+			}}
+			bottom="2rem"
+		>
 			<Box
 				display="flex"
 				position="relative"

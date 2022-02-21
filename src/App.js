@@ -2,22 +2,17 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 
+import { Box, Text, Image, Stack, HStack, useToast } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { connect } from "react-redux";
-import {
-	mapStateToProps,
-	mapDispatchToProps,
-} from "./utility/Redux";
+import { mapStateToProps, mapDispatchToProps } from "./utility/Redux";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 import "firebase/database";
 import "firebase/compat/database";
 import firebase from "firebase/compat/app";
-import {
-	getAuth,
-} from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { getDatabase, ref, set, child, get, onValue } from "firebase/database";
-
 
 import { fetchData } from "./utility/Firebase";
 import Login from "./pages/Login";
@@ -190,7 +185,7 @@ const App = ({
 	}, [user, uid]);
 
 	return (
-		<div className="App">
+		<Box className="App">
 			<Routes>
 				<Route exact path="/" element={<PrivateRoute />}>
 					<Route exact path="/" element={<ChatRoom />} />
@@ -198,7 +193,7 @@ const App = ({
 				<Route path="/register" element={<Register />} />
 				<Route path="/login" element={<Login />} />
 			</Routes>
-		</div>
+		</Box>
 	);
 };
 

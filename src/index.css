@@ -1,4 +1,27 @@
 body {
-	background-color: #252329!important;
-	color: white!important;
+	background-color: #252329 !important;
+	color: white !important;
+}
+
+@keyframes drawer-open {
+	from {
+		left: -384px;
+	}
+	to {
+		left: 0;
+	}
+}
+
+.drawer-open {
+	animation-name: drawer-open;
+	animation-duration: 0.5s;
+	animation-fill-mode: forwards;
+	/* left: 0!important; */
+}
+
+.drawer-open > * {
+	animation-name: drawer-open;
+	animation-duration: 0.5s;
+	animation-fill-mode: forwards;
+	/* left: 0!important; */
 }

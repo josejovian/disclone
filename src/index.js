@@ -27,10 +27,21 @@ const initialState = {
 	db: null,
 	auth: null,
 	focus: 0,
+	drawer: "",
 };
 
 export const reducer = (state = initialState, action) => {
 	switch (action.type) {
+		case "DRAWER_OPEN":
+			return {
+				...state,
+				drawer: "drawer-open",
+			};
+		case "DRAWER_CLOSE":
+			return {
+				...state,
+				drawer: "",
+			};
 		case "CONFIG_INITIALIZE":
 			return {
 				...state,
@@ -47,7 +58,7 @@ export const reducer = (state = initialState, action) => {
 			return {
 				...state,
 				channel: action.channel,
-				focus: action.focus
+				focus: action.focus,
 			};
 		case "CHANNEL_ALL":
 			return {

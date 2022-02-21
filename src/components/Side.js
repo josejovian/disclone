@@ -28,7 +28,6 @@ import NewChannel from "./NewChannel";
 import { showErrorToast, showToast } from "../utility/ShowToast";
 import getInitials, { BoxedInitials, getColor } from "../utility/Initials";
 
-
 /* TODO:
  * Add a placeholder channel that appears before the actual channels load.
  * At some point it worked, but some changes will have to be done to make it work again.
@@ -58,7 +57,7 @@ const Side = (props) => {
 		width: "calc(384px)",
 		height: "3.2rem",
 		top: "0",
-		left: "0",
+		left: { base: "-384px", lg: "0" },
 		paddingLeft: "2rem",
 		paddingRight: "2rem",
 		justifyContent: "space-between",
@@ -112,13 +111,11 @@ const Side = (props) => {
 				);
 				props.logout();
 				window.location.reload();
-
 			})
 			.catch((error) => {
 				showErrorToast();
 			});
 	}
-
 
 	/* ------------------------------ Logout Button ----------------------------- */
 
@@ -127,7 +124,7 @@ const Side = (props) => {
 			<IconButton
 				colorScheme="red"
 				icon={<MdLogout />}
-				variant='outline'
+				variant="outline"
 				minWidth="0"
 				width="2rem"
 				height="2rem"
@@ -157,13 +154,13 @@ const Side = (props) => {
 
 	const SideHeader = () => {
 		// In other words, if the user is in view channel detail mode.
-		if(props.focus !== null) {
+		if (props.focus !== null) {
 			return (
 				<Box {...barStyle} justifyContent="flex-start">
 					<IconButton
 						colorScheme="black"
 						icon={<MdKeyboardBackspace />}
-						variant='ghost'
+						variant="ghost"
 						minWidth="0"
 						width="2rem"
 						height="2rem"
@@ -180,7 +177,7 @@ const Side = (props) => {
 					</Text>
 				</Box>
 			);
-		// Otherwise, just show the channel and new channel button.
+			// Otherwise, just show the channel and new channel button.
 		} else {
 			return (
 				<Box {...barStyle}>
@@ -196,22 +193,24 @@ const Side = (props) => {
 				</Box>
 			);
 		}
-	}
+	};
 
 	/* ----------------------- The bottom-part of sidebar ----------------------- */
 
 	const SideFooter = () => {
-		if(props.user === null) {
-			return (
-				<>
-				</>
-			);
+		if (props.user === null) {
+			return <></>;
 		}
 
 		return (
 			<>
 				<Box {...barStyle} top="unset" bottom="0">
-					<BoxedInitials size="2rem" color={getColor(props.user.name)} initials={getInitials(props.user.name)} ignoreFallback={true}/>
+					<BoxedInitials
+						size="2rem"
+						color={getColor(props.user.name)}
+						initials={getInitials(props.user.name)}
+						ignoreFallback={true}
+					/>
 					<Text
 						lineHeight="1rem"
 						fontSize="1rem"
@@ -253,15 +252,15 @@ const Side = (props) => {
 			props.channelUsers !== null
 		) {
 			let ch = JSON.parse(props.channelUsers);
-			
+
 			if (ch === null || ch === undefined) ch = {};
 			ch = Object.entries(ch);
 			const memberList = ch.map((user) => {
-				
 				const [_userId, _userData] = [user[0], user[1]];
 
-				let _initials = null, _color = 'gray';
-				if(_userId !== 'system') {
+				let _initials = null,
+					_color = "gray";
+				if (_userId !== "system") {
 					_initials = getInitials(_userData.name);
 					_color = getColor(_userData.name);
 				}
@@ -281,7 +280,11 @@ const Side = (props) => {
 							backgroundColor: "#3C393F",
 						}}
 					>
-						<BoxedInitials size="2rem" color={_color} initials={_initials} />
+						<BoxedInitials
+							size="2rem"
+							color={_color}
+							initials={_initials}
+						/>
 						<Text
 							color="#BDBDBD"
 							lineHeight="2rem"
@@ -321,9 +324,11 @@ const Side = (props) => {
 				width="384px"
 				height="100vh"
 				top="0"
-				left="0"
+				left={{ base: "-384px", lg: "0" }}
 				bg="#120F13"
 				zIndex="4"
+				className={props.drawer}
+				transition="all 0.5s ease-in-out"
 			>
 				<SideHeader />
 				<Box position="fixed" width="384px" top="4rem" overflowY="auto">
