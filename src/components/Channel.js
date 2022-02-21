@@ -1,36 +1,40 @@
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
+
 import { Box, Text, Image, Stack, HStack, useToast } from "@chakra-ui/react";
-import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
+
+import React, { useState, useRef } from "react";
 import { connect } from "react-redux";
-import getInitials, { BoxedInitials } from "../utility/Initials";
+import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
+
 import { fetchData, writeData } from "../utility/Firebase";
 import { getDatabase, ref, set, child, get } from "firebase/database";
 import firebase from "firebase/compat/app";
-import React, { useState, useRef } from "react";
-import { showErrorToast } from "../utility/ShowToast";
-const channelSize = "32px";
 
-const Channel = ({
-	isDummy,
-	channels,
-	database,
-	uid,
-	db,
-	name = "",
-	property,
-	id,
-	setChannel,
-	setFocus
-}) => {
+import getInitials, { BoxedInitials } from "../utility/Initials";
+import { showErrorToast } from "../utility/ShowToast";
+
+/* -------------------------------------------------------------------------- */
+/*             A component for a channel button on the right side.            */
+/* -------------------------------------------------------------------------- */
+
+/* TODO:
+ * Add a placeholder channel that appears before the actual channels load.
+ * At some point it worked, but some changes will have to be done to make it work again.
+ */
+
+const Channel = ({ isDummy, database, uid, db, name = "", id, setChannel }) => {
 	const toast = useToast();
 	const toastIdRef = React.useRef();
 
 	async function prepareChannel() {
-		if (isDummy) return;
+		if (isDummy || id === null) return;
 
 		setChannel(id);
 		let data = await fetchData(db, `channel/${id}`);
 		let members = data.member;
-		let exists = (members[uid] === undefined) ? false : true ;
+		let exists = members[uid] === undefined ? false : true;
 		if (exists) return;
 
 		database
@@ -48,8 +52,9 @@ const Channel = ({
 			});
 	}
 
-	if(id === 0)
-		prepareChannel();
+	// This is so that the user is automatically added to Welcome channel
+	// if they haven't since everyone arrives at the Welcome channel upon sign up or login.
+	// if (id === 0) prepareChannel();
 
 	return (
 		<Box
@@ -66,22 +71,11 @@ const Channel = ({
 				backgroundColor: "#3C393F",
 			}}
 		>
-			<BoxedInitials size="2rem" color="#252329" initials={getInitials(name)} />
-			{/*<Box width={channelSize}>
-				<Box
-					display="flex"
-					justifyContent="center"
-					minWidth={channelSize}
-					width={channelSize}
-					height={channelSize}
-					borderRadius="md"
-					background="#252329"
-				>
-					<Text color="#BDBDBD" fontWeight="700" lineHeight="2rem">
-						{getInitials(name)}
-					</Text>
-				</Box>
-			</Box>*/}
+			<BoxedInitials
+				size="2rem"
+				color="#252329"
+				initials={getInitials(name)}
+			/>
 			<Text
 				color="#BDBDBD"
 				fontWeight="700"

@@ -1,3 +1,7 @@
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
+
 import {
 	HStack,
 	Button,
@@ -21,6 +25,15 @@ import validateValue, {
 	ValidationInput,
 	validateWithRules,
 } from "../utility/Validation";
+
+/* -------------------------------------------------------------------------- */
+/*                        New channel button component.                       */
+/* -------------------------------------------------------------------------- */
+
+/* TODO (?): 
+ * Might have to create another "Form" component that yields an entire form,
+ * given "columns" of the form.
+ */
 
 const NewChannel = ({ newChannel }) => {
 	const { isOpen, onOpen, onClose } = useDisclosure();

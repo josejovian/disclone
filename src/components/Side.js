@@ -1,3 +1,7 @@
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
+
 import {
 	Box,
 	Text,
@@ -6,24 +10,29 @@ import {
 	SkeletonCircle,
 	useToast,
 	IconButton,
-	Button,
-	Image
 } from "@chakra-ui/react";
+import { MdLogout, MdKeyboardBackspace } from "react-icons/md";
 
 import React, { useRef, useState, useEffect } from "react";
-import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { connect } from "react-redux";
+import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
+import { useNavigate } from "react-router";
 
 import { writeData, fetchData } from "../utility/Firebase";
 import firebase from "firebase/compat/app";
+import { getAuth, signOut } from "firebase/auth";
 
 import Channel from "./Channel";
 import NewChannel from "./NewChannel";
+
 import { showErrorToast, showToast } from "../utility/ShowToast";
-import { MdLogout, MdKeyboardBackspace } from "react-icons/md";
-import { getAuth, signOut } from "firebase/auth";
-import { useNavigate } from "react-router";
 import getInitials, { BoxedInitials, getColor } from "../utility/Initials";
+
+
+/* TODO:
+ * Add a placeholder channel that appears before the actual channels load.
+ * At some point it worked, but some changes will have to be done to make it work again.
+ */
 
 const SkeletonChannel = () => {
 	return (
@@ -34,21 +43,9 @@ const SkeletonChannel = () => {
 	);
 };
 
-const channelSize = "32px";
-
-const LogOut = ({ logout }) => {
-	return (
-		<IconButton
-			colorScheme="red"
-			icon={<MdLogout />}
-			variant='outline'
-			minWidth="0"
-			width="2rem"
-			height="2rem"
-			onClick={logout}
-		/>
-	);
-};
+/* -------------------------------------------------------------------------- */
+/*                              Sidebar Component                             */
+/* -------------------------------------------------------------------------- */
 
 const Side = (props) => {
 	const toast = useToast();
@@ -70,10 +67,13 @@ const Side = (props) => {
 		zIndex: "4",
 	};
 
+	/* ------------------------- Sidebar Functionalities ------------------------ */
+
 	async function newChannel(data) {
 		let id = await fetchData(props.db, "counter/");
 
 		let channel = {
+			id: id.channel,
 			name: data.name,
 			desc: data.desc,
 			member: {
@@ -119,6 +119,25 @@ const Side = (props) => {
 			});
 	}
 
+
+	/* ------------------------------ Logout Button ----------------------------- */
+
+	const LogOut = ({ logout }) => {
+		return (
+			<IconButton
+				colorScheme="red"
+				icon={<MdLogout />}
+				variant='outline'
+				minWidth="0"
+				width="2rem"
+				height="2rem"
+				onClick={logout}
+			/>
+		);
+	};
+
+	/* ---------------------------- List of Channels ---------------------------- */
+
 	const ChannelList = () => {
 		let channels = props.channels;
 		if (channels === null || channels == undefined) channels = [];
@@ -126,16 +145,18 @@ const Side = (props) => {
 		const entries = Object.entries(channels);
 
 		return entries.map((value) => {
-			let key = value[0];
 			let val = value[1];
+			let key = val.id;
 			return (
 				<Channel key={`channel-${key}-${val.name}`} {...val} id={key} />
 			);
 		});
 	};
 
+	/* ------------------------- The top-part of sidebar ------------------------ */
+
 	const SideHeader = () => {
-		
+		// In other words, if the user is in view channel detail mode.
 		if(props.focus !== null) {
 			return (
 				<Box {...barStyle} justifyContent="flex-start">
@@ -159,6 +180,7 @@ const Side = (props) => {
 					</Text>
 				</Box>
 			);
+		// Otherwise, just show the channel and new channel button.
 		} else {
 			return (
 				<Box {...barStyle}>
@@ -176,6 +198,8 @@ const Side = (props) => {
 		}
 	}
 
+	/* ----------------------- The bottom-part of sidebar ----------------------- */
+
 	const SideFooter = () => {
 		if(props.user === null) {
 			return (
@@ -183,29 +207,11 @@ const Side = (props) => {
 				</>
 			);
 		}
+
 		return (
 			<>
 				<Box {...barStyle} top="unset" bottom="0">
 					<BoxedInitials size="2rem" color={getColor(props.user.name)} initials={getInitials(props.user.name)} ignoreFallback={true}/>
-					{/* <Box width={channelSize}>
-						<Box
-							display="flex"
-							justifyContent="center"
-							minWidth={channelSize}
-							width={channelSize}
-							height={channelSize}
-							borderRadius="md"
-							background={getColor(props.user.name)}
-						>
-							<Text
-								color="#BDBDBD"
-								fontWeight="700"
-								lineHeight="2rem"
-							>
-								{getInitials(props.user.name)}
-							</Text>
-						</Box>
-					</Box> */}
 					<Text
 						lineHeight="1rem"
 						fontSize="1rem"
@@ -218,6 +224,8 @@ const Side = (props) => {
 			</>
 		);
 	};
+
+	/* -------------- A header text to separate content in sidebar. ------------- */
 
 	const SideContentHeader = ({ text }) => {
 		return (
@@ -233,7 +241,10 @@ const Side = (props) => {
 		);
 	};
 
+	/* ----------------------- The middle-part of sidebar ----------------------- */
+
 	const SideContent = () => {
+		// Prevent errors just in case if the channels haven't been loaded yet.
 		if (props.channels !== undefined && props.focus === null) {
 			return <ChannelList channels={props.channels} />;
 		} else if (

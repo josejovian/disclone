@@ -1,30 +1,36 @@
-import { Routes, Route, Link } from "react-router-dom";
-import Side from "./components/Side";
-import Main from "./components/Main";
-import ChatRoom from "./pages/ChatRoom";
-import Register from "./pages/Register";
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
+
+import { useEffect, useState } from "react";
+import { connect } from "react-redux";
+import {
+	mapStateToProps,
+	mapDispatchToProps,
+} from "./utility/Redux";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+
 import "firebase/database";
 import "firebase/compat/database";
 import firebase from "firebase/compat/app";
 import {
 	getAuth,
-	signInWithEmailAndPassword,
-	createUserWithEmailAndPassword,
-	signOut,
 } from "firebase/auth";
 import { getDatabase, ref, set, child, get, onValue } from "firebase/database";
-import { useEffect, useState } from "react";
-import {
-	mapStateToProps,
-	mapDispatchToProps,
-	setChannel,
-	logout,
-} from "./utility/Redux";
-import { connect } from "react-redux";
+
+
 import { fetchData } from "./utility/Firebase";
-import { Navigate, Switch, Outlet } from "react-router";
 import Login from "./pages/Login";
 import { showErrorToast } from "./utility/ShowToast";
+
+import Side from "./components/Side";
+import Main from "./components/Main";
+import ChatRoom from "./pages/ChatRoom";
+import Register from "./pages/Register";
+
+/* -------------------------------------------------------------------------- */
+/*                           Firebase Configuration                           */
+/* -------------------------------------------------------------------------- */
 
 const config = {
 	apiKey: process.env.REACT_APP_API_KEY,
@@ -37,6 +43,10 @@ const c_app = firebase.initializeApp(config);
 const c_auth = getAuth();
 const c_db = getDatabase(c_app);
 const c_database = firebase.database();
+
+/* -------------------------------------------------------------------------- */
+/*                             Main App Component                             */
+/* -------------------------------------------------------------------------- */
 
 const App = ({
 	auth,
@@ -57,13 +67,11 @@ const App = ({
 }) => {
 	const [init, setInit] = useState(false);
 	const [logged, setLogged] = useState(false);
-	/*
-	 * Firebase
-	 * Functions
-	 * * * * * * * * * * */
 
-	// async function configureFirebase() {
-	// setDatabase(firebase.database());
+	/* ------------------------ Database Functionalities ------------------------ */
+
+	// Makes sure that all database-related stuff are properly stored in redux for use
+	// in other components.
 	if (
 		init === false &&
 		(db !== c_db || auth !== c_auth || database !== c_database)
@@ -91,7 +99,7 @@ const App = ({
 				Object.values(snapshot.val()) !== channels
 			) {
 				const data = snapshot.val();
-				downloadChannel(Object.values(data));
+				downloadChannel(data);
 			}
 		});
 	}
@@ -147,11 +155,11 @@ const App = ({
 		await switchChannelData();
 	}, [user, channel, channels]);
 
-	/*
-	 * Authentication
-	 * Functions
-	 * * * * * * * * * * */
+	/* --------------------- Authentication Functionalities --------------------- */
 
+	/* Reference:
+	 * https://stackoverflow.com/a/69869761
+	 */
 	const PrivateRoute = () => {
 		let ls_user = localStorage.getItem("disclone-user");
 		let ls_uid = localStorage.getItem("disclone-uid");
@@ -177,8 +185,6 @@ const App = ({
 					.catch((error) => {
 						showErrorToast();
 					});
-			} else {
-				// logout();
 			}
 		});
 	}, [user, uid]);

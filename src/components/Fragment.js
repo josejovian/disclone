@@ -1,27 +1,46 @@
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
+
 import { Box, Text, Image, Stack, HStack, Skeleton } from "@chakra-ui/react";
-import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
-import { connect } from "react-redux";
+
 import { useEffect, useState } from "react";
+import { connect } from "react-redux";
+
+import {
+	mapStateToProps,
+	mapDispatchToProps,
+	chatChannel,
+} from "../utility/Redux";
+
 import getInitials, { getColor } from "../utility/Initials";
 import { BoxedInitials } from "../utility/Initials";
-const profileSize = "48px";
 
-const Fragment = ({ key, channelUsers, data, uid }) => {
+/* -------------------------------------------------------------------------- */
+/*           A fragment that represents one, singular chat message.           */
+/* -------------------------------------------------------------------------- */
+
+const Fragment = ({ channelUsers, data }) => {
 	const [display, setDisplay] = useState("Unknown User");
 
 	useEffect(() => {
+		// Prevent errors when trying to read channelUsers[data.author]
 		if (channelUsers === null) return;
 
 		channelUsers = JSON.parse(channelUsers);
-		const author = channelUsers[`'${data.author}'`];
+		const author = channelUsers[data.author];
+		
+		if(author === undefined) return;
 
-		setDisplay(channelUsers[data.author].name);
+		setDisplay(author.name);
 	}, [channelUsers]);
 
 	if (channelUsers === null) return <Skeleton height="32px" width="32px" />;
 
-	let _initials = null, _color = 'gray';
-	if(display !== "Unknown User" && data.author !== "system") {
+	// "System" doesn't get a special initials profile picture.
+	let _initials = null,
+		_color = "gray";
+	if (display !== "Unknown User" && data.author !== "system") {
 		_initials = getInitials(display);
 		_color = getColor(display);
 	}

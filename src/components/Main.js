@@ -1,3 +1,7 @@
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
+
 import { Box, Text, useToast } from "@chakra-ui/react";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -7,35 +11,34 @@ import {
 	setChannel,
 	mapDispatchToProps,
 } from "../utility/Redux";
-import InfiniteScroll from "react-infinite-scroll-component";
-
-import Fragment from "./Fragment";
-import SendChat from "./SendChat";
 
 import { writeData, fetchData } from "../utility/Firebase";
-
-import { getDatabase, ref, set, child, get } from "firebase/database";
 import firebase from "firebase/compat/app";
+
+import InfiniteScroll from "react-infinite-scroll-component";
+import Fragment from "./Fragment";
+import SendChat from "./SendChat";
 import { showErrorToast } from "../utility/ShowToast";
-import { store } from "../index";
 
-const ChatFragments = ({ chats=[] }) => {
-	/* Reference:
+/* -------------------------------------------------------------------------- */
+/*              Contains the fragments (all chats) in a channel.              */
+/* -------------------------------------------------------------------------- */
+
+const ChatFragments = ({ chats = [] }) => {
+	/* Reference (for the infinite scroll):
 	 * https://blog.logrocket.com/4-ways-to-render-large-lists-in-react/
-	 *********/
+	 */
 
-	const threshold = 10;
+	const range = 10;
 	const [count, setCount] = useState({
-		prev: Math.max(chats.length - threshold, 0),
+		prev: Math.max(chats.length - range, 0),
 		next: chats.length,
 	});
 	const [hasMore, setHasMore] = useState(true);
 	const [current, setCurrent] = useState(chats.slice(count.prev, count.next));
-	const [loading, setLoading] = useState(false);
-	const [init, setInit] = useState(false);
 
 	const getMoreData = () => {
-		const floor = Math.max(count.prev - threshold, 0);
+		const floor = Math.max(count.prev - range, 0);
 
 		setTimeout(() => {
 			let newData = chats.slice(floor, count.prev - 1);
@@ -50,6 +53,11 @@ const ChatFragments = ({ chats=[] }) => {
 		}
 	};
 
+	/* Reference
+	 * https://stackoverflow.com/questions/19614069/get-percentage-scrolled-of-an-element-with-jquery
+	 *
+	 * Used to detect when the element is at top, such that older chats are rendered, if there is any.
+	 */
 	function checkAndGetMoreData() {
 		const root = document.getElementById("scrollable");
 		let scrollPercentage =
@@ -63,7 +71,7 @@ const ChatFragments = ({ chats=[] }) => {
 	useEffect(() => {
 		let element = document.getElementById("scrollable");
 		element.onscroll = () => checkAndGetMoreData();
-	});
+	}, []);
 
 	return (
 		<InfiniteScroll
@@ -87,17 +95,11 @@ const ChatFragments = ({ chats=[] }) => {
 	);
 };
 
-const Main = ({
-	database,
-	db,
-	chats = [],
-	usersChannel,
-	channel,
-	channels,
-	uid,
-}) => {
-	// const Fragments = chats.map((value, idx) => <Fragment key={`chat-${value.id}`} data={value} />);
+/* -------------------------------------------------------------------------- */
+/*                               Main Component                               */
+/* -------------------------------------------------------------------------- */
 
+const Main = ({ database, db, chats = [], channel, channels, uid }) => {
 	const toast = useToast();
 	const toastIdRef = React.useRef();
 
@@ -127,13 +129,14 @@ const Main = ({
 	}
 
 	let display =
-		channel !== null && channels !== null
+		channel !== null && channels !== null && channels[channel] !== undefined
 			? channels[channel].name
 			: "Unknown Channel";
 
-	
 	let cannotSendChat =
-		(channel !== null && channels !== null) ? (channels[channel].property.isReadOnly) : false;
+		channel !== null && channels !== null && channels[channel] !== undefined
+			? channels[channel].property.isReadOnly
+			: false;
 
 	return (
 		<Box
