@@ -1,11 +1,24 @@
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
+
 import { Box, Text, useToast } from "@chakra-ui/react";
+
 import React, { useState, useRef, useEffect } from "react";
+import {
+	mapStateToProps,
+	setChannel,
+	mapDispatchToProps,
+} from "../utility/Redux";
+import { connect } from "react-redux";
+import { Link, useNavigate, Redirect } from "react-router-dom";
+
 import { Formik, Field, Form } from "formik";
 import AuthenticationForm, {
 	AuthenticationLayout,
 } from "../components/AuthenticationForm";
-import { Link, useNavigate, Redirect } from "react-router-dom";
-import { showToast, showErrorToast } from "../utility/ShowToast";
+
+import { fetchData } from "../utility/Firebase";
 import {
 	getAuth,
 	signInWithEmailAndPassword,
@@ -13,13 +26,12 @@ import {
 	signOut,
 } from "firebase/auth";
 import { getDatabase, ref, set, child, get } from "firebase/database";
-import { connect } from "react-redux";
-import {
-	mapStateToProps,
-	setChannel,
-	mapDispatchToProps,
-} from "../utility/Redux";
-import { fetchData } from "../utility/Firebase";
+
+import { showToast, showErrorToast } from "../utility/ShowToast";
+
+/* -------------------------------------------------------------------------- */
+/*                                 Login form                                 */
+/* -------------------------------------------------------------------------- */
 
 const Login = ({ auth, db, login }) => {
 	const toast = useToast();

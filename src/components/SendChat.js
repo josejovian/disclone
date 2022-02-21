@@ -1,12 +1,19 @@
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
+
 import { Box, Input, Icon, IconButton } from "@chakra-ui/react";
 import { MdSend } from "react-icons/md";
 
-const profileSize = "64px";
+/* -------------------------------------------------------------------------- */
+/*                      Send chat Input form and Button                       */
+/* -------------------------------------------------------------------------- */
 
 const SendChat = ({ chat, isDisabled }) => {
 	function sendChat() {
 		let text = document.getElementById("chat");
 
+		// Prevent users from sending just spaces.
 		let spaces = true;
 		for (let i = 0; i < text.value.length; i++) {
 			if (text.value[i] != " ") {
@@ -20,6 +27,7 @@ const SendChat = ({ chat, isDisabled }) => {
 		text.value = "";
 	}
 
+	// User can also use ENTER to send messages.
 	function enter(event) {
 		if (event.keyCode === 13) {
 			event.preventDefault();

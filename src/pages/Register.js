@@ -1,31 +1,41 @@
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
+
 import { Box, Text, useToast } from "@chakra-ui/react";
+
 import React, { useState, useRef } from "react";
+import {
+	mapStateToProps,
+	setChannel,
+	mapDispatchToProps,
+} from "../utility/Redux";
+import { connect } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+
 import { Formik, Field, Form } from "formik";
 import AuthenticationForm, {
 	AuthenticationLayout,
 } from "../components/AuthenticationForm";
-import { Link, useNavigate } from "react-router-dom";
-import { showToast, showErrorToast } from "../utility/ShowToast";
+
+import { writeData } from "../utility/Firebase";
 import {
 	getAuth,
 	signInWithEmailAndPassword,
 	createUserWithEmailAndPassword,
 	signOut,
 } from "firebase/auth";
-import { getDatabase, ref, set, child, get } from "firebase/database";
-import { connect } from "react-redux";
-import {
-	mapStateToProps,
-	setChannel,
-	mapDispatchToProps,
-} from "../utility/Redux";
-import { writeData } from "../utility/Firebase";
+
+import { showToast, showErrorToast } from "../utility/ShowToast";
+
+/* -------------------------------------------------------------------------- */
+/*                                Register form                               */
+/* -------------------------------------------------------------------------- */
+
 const Register = ({ auth, db, login }) => {
 	const toast = useToast();
 	const toastIdRef = React.useRef();
 	const history = useNavigate();
-
-	//
 
 	async function registerAccount(data) {
 		let result = null;

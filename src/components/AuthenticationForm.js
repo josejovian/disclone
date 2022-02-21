@@ -1,9 +1,22 @@
-import { Box, Button } from "@chakra-ui/react";
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
+
+import { Box, Button, FormErrorIcon } from "@chakra-ui/react";
+
+import { useState } from "react";
+
+import { Formik, Field, Form } from "formik";
+
 import Side from "../components/Side";
 import Main from "../components/Main";
-import { useState } from "react";
-import { Formik, Field, Form } from "formik";
+
 import { ValidationInput, validateWithRules } from "../utility/Validation";
+import { login } from "../utility/Redux";
+
+/* -------------------------------------------------------------------------- */
+/*                A box that contains the register/login Form.                */
+/* -------------------------------------------------------------------------- */
 
 export const AuthenticationLayout = ({ children }) => {
 	return (
@@ -29,6 +42,16 @@ export const AuthenticationLayout = ({ children }) => {
 		</Box>
 	);
 };
+
+/* -------------------------------------------------------------------------- */
+/*                           The register/login form                          */
+/* -------------------------------------------------------------------------- */
+
+/* NOTE:
+ * While this may be a simple way to reuse the same code for both register/login,
+ * I might have to create a separate component if there is the need to create extra
+ * input columns in any of the form.
+ */
 
 const AuthenticationForm = ({ actionName, actionFunction }) => {
 	const columnRules = {
@@ -76,6 +99,7 @@ const AuthenticationForm = ({ actionName, actionFunction }) => {
 	);
 	let initialValues = { email: "", name: "", password: "" };
 
+	// In the login form, there won't be name inputs so just pretend it doesn't exist.
 	if (actionName === "Login") {
 		nameElement = <></>;
 		initialValues = { email: "", password: "" };

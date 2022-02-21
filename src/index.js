@@ -88,6 +88,7 @@ ReactDOM.render(
 		<Provider store={store}>
 			<ChakraProvider>
 				<BrowserRouter>
+					<ColorModeScript options={config.initialColorMode} />
 					<App />
 				</BrowserRouter>
 			</ChakraProvider>
