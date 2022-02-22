@@ -14,14 +14,10 @@ import {
 	ModalFooter,
 	ModalBody,
 	ModalCloseButton,
-	FormControl,
-	FormErrorMessage,
-	Input,
-	Textarea,
 } from "@chakra-ui/react";
 import { MdAdd } from "react-icons/md";
-import { Formik, Field, Form } from "formik";
-import validateValue, {
+import { Formik, Form } from "formik";
+import {
 	ValidationInput,
 	validateWithRules,
 } from "../utility/Validation";

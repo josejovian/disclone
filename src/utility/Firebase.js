@@ -1,4 +1,4 @@
-import { getDatabase, ref, set, child, get } from "firebase/database";
+import { ref, set, child, get } from "firebase/database";
 
 export async function fetchData(db, link) {
 	if (db === null || db === undefined) {

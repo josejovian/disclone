@@ -2,17 +2,11 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 
-import { Box, Button, FormErrorIcon } from "@chakra-ui/react";
+import { Box, Button } from "@chakra-ui/react";
 
-import { useState } from "react";
-
-import { Formik, Field, Form } from "formik";
-
-import Side from "../components/Side";
-import Main from "../components/Main";
+import { Formik, Form } from "formik";
 
 import { ValidationInput, validateWithRules } from "../utility/Validation";
-import { login } from "../utility/Redux";
 
 /* -------------------------------------------------------------------------- */
 /*                A box that contains the register/login Form.                */

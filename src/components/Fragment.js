@@ -2,7 +2,7 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 
-import { Box, Text, Image, Stack, HStack, Skeleton } from "@chakra-ui/react";
+import { Box, Text, Stack,Skeleton } from "@chakra-ui/react";
 
 import { useEffect, useState } from "react";
 import { connect } from "react-redux";
@@ -10,7 +10,6 @@ import { connect } from "react-redux";
 import {
 	mapStateToProps,
 	mapDispatchToProps,
-	chatChannel,
 } from "../utility/Redux";
 
 import getInitials, { getColor } from "../utility/Initials";
@@ -27,13 +26,13 @@ const Fragment = ({ channelUsers, data }) => {
 		// Prevent errors when trying to read channelUsers[data.author]
 		if (channelUsers === null) return;
 
-		channelUsers = JSON.parse(channelUsers);
-		const author = channelUsers[data.author];
+		const parsedUsers = JSON.parse(channelUsers);
+		const author = parsedUsers[data.author];
 		
 		if(author === undefined) return;
 
 		setDisplay(author.name);
-	}, [channelUsers]);
+	}, [channelUsers, data.author]);
 
 	if (channelUsers === null) return <Skeleton height="32px" width="32px" />;
 

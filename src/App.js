@@ -2,8 +2,8 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 
-import { Box, Text, Image, Stack, HStack, useToast } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { Box, useToast } from "@chakra-ui/react";
+import React, { useEffect, useState, useCallback } from "react";
 import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "./utility/Redux";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
@@ -12,14 +12,12 @@ import "firebase/database";
 import "firebase/compat/database";
 import firebase from "firebase/compat/app";
 import { getAuth } from "firebase/auth";
-import { getDatabase, ref, set, child, get, onValue } from "firebase/database";
+import { getDatabase, ref, child, get, onValue } from "firebase/database";
 
 import { fetchData } from "./utility/Firebase";
 import Login from "./pages/Login";
 import { showErrorToast } from "./utility/ShowToast";
 
-import Side from "./components/Side";
-import Main from "./components/Main";
 import ChatRoom from "./pages/ChatRoom";
 import Register from "./pages/Register";
 
@@ -49,6 +47,7 @@ const App = ({
 	uid,
 	channel,
 	channels,
+	channelUsers,
 	db,
 	database,
 	configureFirebase,
@@ -63,92 +62,109 @@ const App = ({
 	const [init, setInit] = useState(false);
 	const [logged, setLogged] = useState(false);
 
+	const toast = useToast();
+	const toastIdRef = React.useRef();
+
 	/* ------------------------ Database Functionalities ------------------------ */
 
 	// Makes sure that all database-related stuff are properly stored in redux for use
 	// in other components.
-	if (
-		init === false &&
-		(db !== c_db || auth !== c_auth || database !== c_database)
-	) {
-		configureFirebase({
-			db: c_db,
-			auth: c_auth,
-			database: c_database,
-		});
-		setInit(true);
-	}
+	useEffect(() => {
+		if (
+			init === false &&
+			(db !== c_db || auth !== c_auth || database !== c_database)
+		) {
+			configureFirebase({
+				db: c_db,
+				auth: c_auth,
+				database: c_database,
+			});
+			setInit(true);
+		}
+	}, [init, db, auth, database, configureFirebase, setInit]);
+	
 
-	async function initialize() {
-		if (user === null) return;
+	const initialize = useCallback(async () => {
+		if (user === null || channels !== null) return;
 
 		let rawData = await fetchData(c_db, `channel/`);
-		downloadChannel(Object.values(rawData));
+		downloadChannel(rawData);
 		setChannel(0);
-	}
+	}, [ downloadChannel, setChannel, user, channels]);
 
-	async function getChannels() {
+	const getChannels = useCallback(() => {
 		onValue(ref(c_db, `channel/`), (snapshot) => {
 			if (
-				snapshot.exists() &&
-				Object.values(snapshot.val()) !== channels
+				snapshot.exists()
 			) {
 				const data = snapshot.val();
 				downloadChannel(data);
 			}
 		});
-	}
+	}, [ downloadChannel ] );
 
-	async function getChatOfChannel() {
-		if (channel === undefined) return;
+	useEffect(() => {
+		if(init === true)
+			return;
+		async function _initialize() {
+			await initialize();
+			await getChannels();
+		}
+		_initialize();
+	}, [user, init, getChannels, initialize]);
 
-		onValue(ref(c_db, `message/${channel}/`), (snapshot) => {
-			if (snapshot.exists() && Object.values(snapshot.val()) !== chats) {
-				const data = snapshot.val();
-				chatChannel(Object.values(data));
-			}
+	useEffect(() => {
+		if (channel === null) {
+			return;
+		}
+
+		const switchChannelData = (async () => {
+			if (
+				channels === null ||
+				channel === null ||
+				channels[channel] === undefined
+			)
+				return;
+
+			const getChatOfChannel = () => {
+				if (channel === undefined) return;
+				onValue(ref(c_db, `message/${channel}/`), (snapshot) => {
+					if (snapshot.exists()) {
+						const data = snapshot.val();
+						chatChannel(Object.values(data));
+					}
+				});
+			};
+
+			const getMemberOfChannel = async () => {
+				if (
+					channels === null ||
+					channel === null ||
+					channels[channel] === undefined
+				)
+					return;
+
+				let members = channels[channel].member;
+				let memberOfChannel = {};
+		
+				for await (const [memberId, status] of Object.entries(members)) {
+					let rawData = await fetchData(c_db, `user/${memberId}/`);
+					if (rawData !== null) {
+						memberOfChannel = { ...memberOfChannel, [memberId]: rawData };
+						memberOfChannel[memberId] = rawData;
+					}
+				}
+		
+				const stringified = JSON.stringify(memberOfChannel);
+				usersChannel(stringified);
+			};
+		
+			await getChatOfChannel();
+			await getMemberOfChannel();
 		});
-	}
-
-	async function getMemberOfChannel() {
-		if (
-			channels === null ||
-			channel === null ||
-			channels[channel] === undefined
-		)
-			return;
-
-		let members = channels[channel].member;
-		let memberOfChannel = {};
-
-		for await (const [memberId, status] of Object.entries(members)) {
-			let rawData = await fetchData(c_db, `user/${memberId}/`);
-			if (rawData !== null) {
-				memberOfChannel = { ...memberOfChannel, [memberId]: rawData };
-				memberOfChannel[memberId] = rawData;
-			}
-		}
-
-		usersChannel(JSON.stringify(memberOfChannel));
-	}
-
-	useEffect(async () => {
-		await initialize();
-		await getChannels();
-	}, [user, init]);
-
-	async function switchChannelData() {
-		chatChannel([]);
-		await getChatOfChannel();
-		await getMemberOfChannel();
-	}
-
-	useEffect(async () => {
-		if (user === null) {
-			return;
-		}
-		await switchChannelData();
-	}, [user, channel, channels]);
+	
+		switchChannelData();
+	}, [channel, channels, chatChannel, usersChannel]);
 
 	/* --------------------- Authentication Functionalities --------------------- */
 
@@ -166,7 +182,7 @@ const App = ({
 		return ls_user ? <Outlet /> : <Navigate to="/login" />;
 	};
 
-	useEffect(async () => {
+	useEffect(() => {
 		c_auth.onAuthStateChanged((c_user) => {
 			if (logged && c_user !== null) return;
 			if (!logged && c_user !== null) {
@@ -178,11 +194,11 @@ const App = ({
 						}
 					})
 					.catch((error) => {
-						showErrorToast();
+						showErrorToast(toast, toastIdRef);
 					});
 			}
 		});
-	}, [user, uid]);
+	}, [user, uid, login, logged, toast]);
 
 	return (
 		<Box className="App">

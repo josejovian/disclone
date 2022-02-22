@@ -4,9 +4,18 @@ import {
 	Input,
 	Textarea,
 } from "@chakra-ui/react";
-import { MdAdd } from "react-icons/md";
-import { Formik, Field, Form } from "formik";
+import { Field } from "formik";
 
+/* Source:
+ * https://flexiple.com/javascript-array-equality/
+ */
+
+export function arrayEquals(a, b) {
+    return Array.isArray(a) &&
+        Array.isArray(b) &&
+        a.length === b.length &&
+        a.every((val, index) => val === b[index]);
+}
 
 const validateValue = (rule, name, value) => {
 	let error = '';
@@ -40,8 +49,7 @@ const validateValue = (rule, name, value) => {
 };
 
 export function validateWithRules(columnRules, display, name, value) {
-	let success = true,
-		message;
+	let message;
 
 	let rules = columnRules[name];
 	for (const [rule, params] of Object.entries(rules)) {
@@ -49,8 +57,7 @@ export function validateWithRules(columnRules, display, name, value) {
 		entry.rule = rule;
 		entry.params = params;
 		const validationStatus = validateValue(entry, display, value);
-		if (validationStatus.status == false) {
-			success = false;
+		if (validationStatus.status === false) {
 			message = validationStatus.message;
 			break;
 		}

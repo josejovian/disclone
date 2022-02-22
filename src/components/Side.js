@@ -5,22 +5,19 @@
 import {
 	Box,
 	Text,
-	Skeleton,
-	HStack,
-	SkeletonCircle,
 	useToast,
 	IconButton,
 } from "@chakra-ui/react";
 import { MdLogout, MdKeyboardBackspace } from "react-icons/md";
 
-import React, { useRef, useState, useEffect } from "react";
+import React from "react";
 import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { useNavigate } from "react-router";
 
 import { writeData, fetchData } from "../utility/Firebase";
 import firebase from "firebase/compat/app";
-import { getAuth, signOut } from "firebase/auth";
+import { signOut } from "firebase/auth";
 
 import Channel from "./Channel";
 import NewChannel from "./NewChannel";
@@ -31,7 +28,7 @@ import getInitials, { BoxedInitials, getColor } from "../utility/Initials";
 /* TODO:
  * Add a placeholder channel that appears before the actual channels load.
  * At some point it worked, but some changes will have to be done to make it work again.
- */
+ 
 
 const SkeletonChannel = () => {
 	return (
@@ -41,6 +38,7 @@ const SkeletonChannel = () => {
 		</HStack>
 	);
 };
+ */
 
 /* -------------------------------------------------------------------------- */
 /*                              Sidebar Component                             */
@@ -113,7 +111,7 @@ const Side = (props) => {
 				window.location.reload();
 			})
 			.catch((error) => {
-				showErrorToast();
+				showErrorToast(toast, toastIdRef);
 			});
 	}
 
@@ -137,7 +135,7 @@ const Side = (props) => {
 
 	const ChannelList = () => {
 		let channels = props.channels;
-		if (channels === null || channels == undefined) channels = [];
+		if (channels === null || channels === undefined) channels = [];
 
 		const entries = Object.entries(channels);
 

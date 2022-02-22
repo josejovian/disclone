@@ -2,30 +2,23 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 
-import { Box, Text, useToast } from "@chakra-ui/react";
+import { Text, useToast } from "@chakra-ui/react";
 
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import {
 	mapStateToProps,
-	setChannel,
 	mapDispatchToProps,
 } from "../utility/Redux";
 import { connect } from "react-redux";
-import { Link, useNavigate, Redirect } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-import { Formik, Field, Form } from "formik";
 import AuthenticationForm, {
 	AuthenticationLayout,
 } from "../components/AuthenticationForm";
 
-import { fetchData } from "../utility/Firebase";
 import {
-	getAuth,
 	signInWithEmailAndPassword,
-	createUserWithEmailAndPassword,
-	signOut,
 } from "firebase/auth";
-import { getDatabase, ref, set, child, get } from "firebase/database";
 
 import { showToast, showErrorToast } from "../utility/ShowToast";
 

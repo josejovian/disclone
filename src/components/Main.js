@@ -4,13 +4,9 @@
 
 import { Box, Text, useToast, IconButton } from "@chakra-ui/react";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { connect } from "react-redux";
-import {
-	mapStateToProps,
-	setChannel,
-	mapDispatchToProps,
-} from "../utility/Redux";
+import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { MdMenu } from "react-icons/md";
 
 import { writeData, fetchData } from "../utility/Firebase";
@@ -38,7 +34,7 @@ const ChatFragments = ({ chats = [] }) => {
 	const [hasMore, setHasMore] = useState(true);
 	const [current, setCurrent] = useState(chats.slice(count.prev, count.next));
 
-	const getMoreData = () => {
+	const getMoreData = useCallback(() => {
 		const floor = Math.max(count.prev - range, 0);
 
 		setTimeout(() => {
@@ -52,14 +48,14 @@ const ChatFragments = ({ chats = [] }) => {
 		if (floor === 0) {
 			setHasMore(false);
 		}
-	};
+	}, [current, count, chats]);
 
 	/* Reference
 	 * https://stackoverflow.com/questions/19614069/get-percentage-scrolled-of-an-element-with-jquery
 	 *
 	 * Used to detect when the element is at top, such that older chats are rendered, if there is any.
 	 */
-	function checkAndGetMoreData() {
+	const checkAndGetMoreData = useCallback(() => {
 		const root = document.getElementById("scrollable");
 		let scrollPercentage =
 			(100 * root.scrollTop) / (-root.scrollHeight + root.clientHeight);
@@ -67,12 +63,12 @@ const ChatFragments = ({ chats = [] }) => {
 		if (hasMore && scrollPercentage >= 99) {
 			getMoreData();
 		}
-	}
+	}, [hasMore, getMoreData]);
 
 	useEffect(() => {
 		let element = document.getElementById("scrollable");
 		element.onscroll = () => checkAndGetMoreData();
-	}, []);
+	}, [checkAndGetMoreData]);
 
 	return (
 		<InfiniteScroll
@@ -115,12 +111,28 @@ const Main = ({
 	const toast = useToast();
 	const toastIdRef = React.useRef();
 
+	let display =
+		channel !== null && channels !== null && channels[channel] !== undefined
+			? channels[channel].name
+			: "Unknown Channel";
+
+	let cannotSendChat =
+		channel !== null && channels !== null && channels[channel] !== undefined
+			? channels[channel].property.isReadOnly
+			: false;
+
+	let mainWidth = { base: "100vw", lg: "calc(100vw - 384px)" };
+
 	async function writeChat(id, message) {
 		writeData(db, `message/${channel}/${id}`, message);
 	}
 
 	async function sendChat(text) {
 		let id = await fetchData(db, "counter/");
+
+		if(cannotSendChat)
+			return;
+
 		let message = {
 			id: id.message,
 			author: uid,
@@ -140,17 +152,7 @@ const Main = ({
 			});
 	}
 
-	let display =
-		channel !== null && channels !== null && channels[channel] !== undefined
-			? channels[channel].name
-			: "Unknown Channel";
 
-	let cannotSendChat =
-		channel !== null && channels !== null && channels[channel] !== undefined
-			? channels[channel].property.isReadOnly
-			: false;
-
-	let mainWidth = { base: "100vw", lg: "calc(100vw - 384px)" };
 
 	const Mask = () => {
 		return (

@@ -1,4 +1,5 @@
-import { Box, Text, Image, Stack, HStack, useToast } from "@chakra-ui/react";
+import { Box, Text, Image } from "@chakra-ui/react";
+import React from "react";
 
 export function BoxedInitials({
 	color,
@@ -27,7 +28,7 @@ export function BoxedInitials({
 		fontWeight: "700",
 		lineHeight: "2rem",
 		userSelect: "none",
-	}
+	};
 
 	let fallback = (
 		<Image
@@ -39,6 +40,7 @@ export function BoxedInitials({
 			height={size}
 			borderRadius="lg"
 			src="https://via.placeholder.com/150"
+			fallbackSrc="https://via.placeholder.com/150"
 		/>
 	);
 
@@ -55,11 +57,7 @@ export function BoxedInitials({
 
 	let letterIcon = (
 		<Box {...letterWrapperStyle}>
-			<Text
-				{...letterStyle}
-			>
-				{initials}
-			</Text>
+			<Text {...letterStyle}>{initials}</Text>
 		</Box>
 	);
 
@@ -97,19 +95,19 @@ export function getColor(str) {
 	 * https://flatuicolors.com/palette/defo
 	 */
 	let palette = [
-		'#16a085',
-		'#2980b9',
-		'#8e44ad',
-		'#f39c12',
-		'#d35400',
-		'#c0392b',
-		'#2c3e50',
-	]
+		"#16a085",
+		"#2980b9",
+		"#8e44ad",
+		"#f39c12",
+		"#d35400",
+		"#c0392b",
+		"#2c3e50",
+	];
 
-	const _num = Math.floor(
-		str.length * (_avg + _sum) / (_max - _min)
-	) % (palette.length);
-		// console.log(_num);
+	const _num =
+		Math.floor((str.length * (_avg + _sum)) / (_max - _min)) %
+		palette.length;
+	// console.log(_num);
 
 	return palette[_num];
 }
@@ -125,8 +123,8 @@ export default function getInitials(str) {
 
 	let space = false;
 	for (let i = 1; i < str.length && initials.length < 2; i++) {
-		if (str[i] == " ") space = true;
-		else if (space == true) {
+		if (str[i] === " ") space = true;
+		else if (space === true) {
 			initials += str[i];
 			space = false;
 		}

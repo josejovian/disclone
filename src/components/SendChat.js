@@ -16,12 +16,12 @@ const SendChat = ({ chat, isDisabled, mainWidth }) => {
 		// Prevent users from sending just spaces.
 		let spaces = true;
 		for (let i = 0; i < text.value.length; i++) {
-			if (text.value[i] != " ") {
+			if (text.value[i] !== " ") {
 				spaces = false;
 			}
 		}
 
-		if (spaces == true) return;
+		if (spaces === true) return;
 
 		chat(text.value);
 		text.value = "";

@@ -2,14 +2,13 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 
-import { Box, Text, Image, Stack, HStack, useToast } from "@chakra-ui/react";
+import { Box, Text, useToast } from "@chakra-ui/react";
 
-import React, { useState, useRef } from "react";
+import React from "react";
 import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 
 import { fetchData, writeData } from "../utility/Firebase";
-import { getDatabase, ref, set, child, get } from "firebase/database";
 import firebase from "firebase/compat/app";
 
 import getInitials, { BoxedInitials } from "../utility/Initials";
