@@ -60,6 +60,7 @@ const App = ({
 	logout,
 }) => {
 	const [init, setInit] = useState(false);
+	const [init_2, setInit_2] = useState(false);
 	const [logged, setLogged] = useState(false);
 
 	const toast = useToast();
@@ -67,7 +68,7 @@ const App = ({
 	const history = useNavigate();
 
 	// Force dark mode, I can't figure out the Chakra UI method to do this.
-	if(localStorage.getItem("chakra-ui-color-mode") !== "dark") {
+	if (localStorage.getItem("chakra-ui-color-mode") !== "dark") {
 		localStorage.setItem("chakra-ui-color-mode", "dark");
 		history("/");
 	}
@@ -78,7 +79,7 @@ const App = ({
 	// in other components.
 	useEffect(() => {
 		if (
-			init === false &&
+			init_2 === false &&
 			(db !== c_db || auth !== c_auth || database !== c_database)
 		) {
 			configureFirebase({
@@ -86,33 +87,30 @@ const App = ({
 				auth: c_auth,
 				database: c_database,
 			});
-			setInit(true);
+			setInit_2(true);
 		}
-	}, [init, db, auth, database, configureFirebase, setInit]);
-	
+	}, [init_2, db, auth, database, configureFirebase, setInit]);
 
 	const initialize = useCallback(async () => {
-		if (user === null || channels !== null) return;
+		if (user === null) return;
 
 		let rawData = await fetchData(c_db, `channel/`);
 		downloadChannel(rawData);
 		setChannel(0);
-	}, [ downloadChannel, setChannel, user, channels]);
+	}, [downloadChannel, setChannel, user]);
 
 	const getChannels = useCallback(() => {
 		onValue(ref(c_db, `channel/`), (snapshot) => {
-			if (
-				snapshot.exists()
-			) {
+			if (snapshot.exists()) {
 				const data = snapshot.val();
 				downloadChannel(data);
 			}
 		});
-	}, [ downloadChannel ] );
+		setInit(true);
+	}, [downloadChannel]);
 
 	useEffect(() => {
-		if(init === true)
-			return;
+		if (init === true || user === null) return;
 		async function _initialize() {
 			await initialize();
 			await getChannels();
@@ -125,7 +123,7 @@ const App = ({
 			return;
 		}
 
-		const switchChannelData = (async () => {
+		const switchChannelData = async () => {
 			if (
 				channels === null ||
 				channel === null ||
@@ -153,23 +151,28 @@ const App = ({
 
 				let members = channels[channel].member;
 				let memberOfChannel = {};
-		
-				for await (const [memberId, status] of Object.entries(members)) {
+
+				for await (const [memberId, status] of Object.entries(
+					members
+				)) {
 					let rawData = await fetchData(c_db, `user/${memberId}/`);
 					if (rawData !== null) {
-						memberOfChannel = { ...memberOfChannel, [memberId]: rawData };
+						memberOfChannel = {
+							...memberOfChannel,
+							[memberId]: rawData,
+						};
 						memberOfChannel[memberId] = rawData;
 					}
 				}
-		
+
 				const stringified = JSON.stringify(memberOfChannel);
 				usersChannel(stringified);
 			};
-		
+
 			await getChatOfChannel();
 			await getMemberOfChannel();
-		});
-	
+		};
+
 		switchChannelData();
 	}, [channel, channels, chatChannel, usersChannel]);
 

@@ -210,6 +210,7 @@ const Main = ({
 					shadow="md"
 				>
 					<IconButton
+						display={{base: 'unset', lg: 'none'}}
 						colorScheme="gray"
 						icon={<MdMenu />}
 						minWidth="0"
