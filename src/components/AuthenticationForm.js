@@ -2,7 +2,7 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 
-import { Box, Button } from "@chakra-ui/react";
+import { Box, Button, Text } from "@chakra-ui/react";
 
 import { Formik, Form } from "formik";
 
@@ -21,6 +21,7 @@ export const AuthenticationLayout = ({ children }) => {
 			width="100vw"
 			height="100vh"
 			display="flex"
+			flexDirection="column"
 			justifyContent="center"
 			alignItems="center"
 		>
@@ -33,6 +34,9 @@ export const AuthenticationLayout = ({ children }) => {
 			>
 				{children}
 			</Box>
+			<Text fontSize="0.8rem" marginTop="0.5rem"> 
+				Created by&nbsp;<a href="https://github.com/josejovian" title="Jose Jovian">josejovian</a>&nbsp;-&nbsp;<a href="https://devchallenges.io/" title="Dev Challenges">devChallenges.io</a>
+			</Text>
 		</Box>
 	);
 };
