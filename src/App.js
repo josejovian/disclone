@@ -6,7 +6,7 @@ import { Box, useToast } from "@chakra-ui/react";
 import React, { useEffect, useState, useCallback } from "react";
 import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "./utility/Redux";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, Outlet } from "react-router-dom";
 
 import "firebase/database";
 import "firebase/compat/database";
@@ -64,6 +64,13 @@ const App = ({
 
 	const toast = useToast();
 	const toastIdRef = React.useRef();
+	const history = useNavigate();
+
+	// Force dark mode, I can't figure out the Chakra UI method to do this.
+	if(localStorage.getItem("chakra-ui-color-mode") !== "dark") {
+		localStorage.setItem("chakra-ui-color-mode", "dark");
+		history("/");
+	}
 
 	/* ------------------------ Database Functionalities ------------------------ */
 
