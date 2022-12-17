@@ -1,90 +1,84 @@
-/* -------------------------------------------------------------------------- */
-/*                                   Imports                                  */
-/* -------------------------------------------------------------------------- */
-
 import { Text, useToast } from "@chakra-ui/react";
-
-import React from "react";
+import { useCallback, useMemo, useRef } from "react";
+import { connect } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import {
 	mapStateToProps,
 	mapDispatchToProps,
-} from "../utility/Redux";
-import { connect } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+	showToast,
+	showErrorToast,
+} from "../utility";
+import { AuthLayout, AuthLoginForm } from "../components";
 
-import AuthenticationForm, {
-	AuthenticationLayout,
-} from "../components/AuthenticationForm";
-
-import {
-	signInWithEmailAndPassword,
-} from "firebase/auth";
-
-import { showToast, showErrorToast } from "../utility/ShowToast";
-
-/* -------------------------------------------------------------------------- */
-/*                                 Login form                                 */
-/* -------------------------------------------------------------------------- */
-
-const Login = ({ auth, db, login }) => {
+const Login = ({ auth, login }) => {
 	const toast = useToast();
-	const toastIdRef = React.useRef();
+	const toastIdRef = useRef();
 	const history = useNavigate();
 
-	async function loginAccount(data) {
-		let result = null;
+	const handleLoginAccount = useCallback(
+		async (data) => {
+			let result = null;
 
-		await signInWithEmailAndPassword(auth, data.email, data.password)
-			.catch((error) => {
-				result = error;
-				
-				showErrorToast(toast, toastIdRef);
-			})
-			.then(() => {
-				if (result === null) {
-					login(true, true);
-					history("/");
-					showToast(
-						toast,
-						toastIdRef,
-						"Login successful!",
-						"Welcome to Disclone!",
-						"success",
-						2000,
-						true
-					);
-				}
-			});
-		return result;
-	}
+			await signInWithEmailAndPassword(auth, data.email, data.password)
+				.catch((error) => {
+					result = error;
+
+					showErrorToast(toast, toastIdRef);
+				})
+				.then(() => {
+					if (result === null) {
+						login(true, true);
+						history("/");
+						showToast(
+							toast,
+							toastIdRef,
+							"Login successful!",
+							"Welcome to Disclone!",
+							"success",
+							2000,
+							true
+						);
+					}
+				});
+			return result;
+		},
+		[auth, history, login, toast]
+	);
+
+	const renderAuthHeader = useMemo(
+		() => (
+			<>
+				<Text
+					fontSize="xl"
+					fontWeight="bold"
+					textAlign="center"
+					color="white"
+				>
+					Login
+				</Text>
+				<Text
+					fontSize="md"
+					textAlign="center"
+					marginBottom="2rem"
+					color="white"
+				>
+					Don't have an account?{" "}
+					<Link to="/register">
+						<u>Sign Up</u>
+					</Link>{" "}
+					instead.
+				</Text>
+			</>
+		),
+		[]
+	);
 
 	return (
-		<AuthenticationLayout>
-			<Text
-				fontSize="xl"
-				fontWeight="bold"
-				textAlign="center"
-				color="white"
-			>
-				Login
-			</Text>
-			<Text
-				fontSize="md"
-				textAlign="center"
-				marginBottom="2rem"
-				color="white"
-			>
-				Don't have an account?{" "}
-				<Link to="/register">
-					<u>Sign Up</u>
-				</Link>{" "}
-				instead.
-			</Text>
-			<AuthenticationForm
-				actionName="Login"
-				actionFunction={loginAccount}
-			/>
-		</AuthenticationLayout>
+		<AuthLayout>
+			{renderAuthHeader}
+			<AuthLoginForm title="Login" onSubmit={handleLoginAccount} />
+		</AuthLayout>
 	);
 };
 

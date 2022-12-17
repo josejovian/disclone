@@ -1,99 +1,106 @@
-/* -------------------------------------------------------------------------- */
-/*                                   Imports                                  */
-/* -------------------------------------------------------------------------- */
-
 import { Text, useToast } from "@chakra-ui/react";
-
-import React from "react";
-import {
-	mapStateToProps,
-	mapDispatchToProps,
-} from "../utility/Redux";
+import { useRef, useCallback, useMemo } from "react";
 import { connect } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-
-import AuthenticationForm, {
-	AuthenticationLayout,
-} from "../components/AuthenticationForm";
-
-import { writeData } from "../utility/Firebase";
-import {
-	createUserWithEmailAndPassword,
-} from "firebase/auth";
-
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { showToast, showErrorToast } from "../utility/ShowToast";
-
-/* -------------------------------------------------------------------------- */
-/*                                Register form                               */
-/* -------------------------------------------------------------------------- */
+import { mapStateToProps, mapDispatchToProps, writeData } from "../utility";
+import { AuthLayout, AuthRegisterForm } from "../components";
 
 const Register = ({ auth, db, login }) => {
 	const toast = useToast();
-	const toastIdRef = React.useRef();
+	const toastIdRef = useRef();
 	const history = useNavigate();
 
-	async function registerAccount(data) {
-		let result = null;
-		await createUserWithEmailAndPassword(auth, data.email, data.password)
-			.then((cred) => {
-				const userData = {
-					name: data.name,
-					role: 'member',
-					isMuted: false,
-				};
-				writeData(db, `user/${cred.user.uid}`, userData);
-				login(userData, cred.user.uid);
-			})
-			.catch((error) => {
-				result = error;
+	const onGetCredentials = useCallback(
+		(data, cred) => {
+			const userData = {
+				name: data.name,
+				role: "member",
+				isMuted: false,
+			};
+			writeData(db, `user/${cred.user.uid}`, userData);
+			login(userData, cred.user.uid);
+		},
+		[db, login]
+	);
 
-				showErrorToast(toast, toastIdRef);
-			})
-			.then(() => {
-				if (result === null) {
-					login(true);
-					history("/");
-					showToast(
-						toast,
-						toastIdRef,
-						"Sign up successful!",
-						"You are logged in automatically.",
-						"success",
-						2000,
-						true
-					);
-				}
-			});
-		return result;
-	}
+	const onSuccess = useCallback(
+		(result) => {
+			if (result === null) {
+				login(true);
+				history("/");
+				showToast(
+					toast,
+					toastIdRef,
+					"Sign up successful!",
+					"You are logged in automatically.",
+					"success",
+					2000,
+					true
+				);
+			}
+		},
+		[history, login, toast]
+	);
+
+	const handleRegisterAccount = useCallback(
+		async (data) => {
+			let result = null;
+
+			await createUserWithEmailAndPassword(
+				auth,
+				data.email,
+				data.password
+			)
+				.then((cred) => {
+					onGetCredentials(data, cred);
+				})
+				.catch((error) => {
+					result = error;
+					showErrorToast(toast, toastIdRef);
+				})
+				.then(() => {
+					onSuccess(result);
+				});
+			return result;
+		},
+		[auth, onSuccess, onGetCredentials, toast]
+	);
+
+	const renderAuthHeader = useMemo(
+		() => (
+			<>
+				<Text
+					fontSize="xl"
+					fontWeight="bold"
+					textAlign="center"
+					color="white"
+				>
+					Sign Up
+				</Text>
+				<Text
+					fontSize="md"
+					textAlign="center"
+					marginBottom="2rem"
+					color="white"
+				>
+					Already have an account?{" "}
+					<Link to="/login">
+						<u>Login</u>
+					</Link>{" "}
+					instead.
+				</Text>
+			</>
+		),
+		[]
+	);
 
 	return (
-		<AuthenticationLayout>
-			<Text
-				fontSize="xl"
-				fontWeight="bold"
-				textAlign="center"
-				color="white"
-			>
-				Sign Up
-			</Text>
-			<Text
-				fontSize="md"
-				textAlign="center"
-				marginBottom="2rem"
-				color="white"
-			>
-				Already have an account?{" "}
-				<Link to="/login">
-					<u>Login</u>
-				</Link>{" "}
-				instead.
-			</Text>
-			<AuthenticationForm
-				actionName="Sign Up"
-				actionFunction={registerAccount}
-			/>
-		</AuthenticationLayout>
+		<AuthLayout>
+			{renderAuthHeader}
+			<AuthRegisterForm onSubmit={handleRegisterAccount} />
+		</AuthLayout>
 	);
 };
 
