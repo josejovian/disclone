@@ -112,7 +112,7 @@ export function getColor(str) {
 	return palette[_num];
 }
 
-export default function getInitials(str) {
+export function getInitials(str) {
 	if (str === undefined || str === null) return;
 
 	let initials = "";

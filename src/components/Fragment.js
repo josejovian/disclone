@@ -2,17 +2,14 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 
-import { Box, Text, Stack,Skeleton } from "@chakra-ui/react";
+import { Box, Text, Stack, Skeleton } from "@chakra-ui/react";
 
 import { useEffect, useState } from "react";
 import { connect } from "react-redux";
 
-import {
-	mapStateToProps,
-	mapDispatchToProps,
-} from "../utility/Redux";
+import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 
-import getInitials, { getColor } from "../utility/Initials";
+import { getInitials, getColor } from "../utility/Initials";
 import { BoxedInitials } from "../utility/Initials";
 
 /* -------------------------------------------------------------------------- */
@@ -28,8 +25,8 @@ const Fragment = ({ channelUsers, data }) => {
 
 		const parsedUsers = JSON.parse(channelUsers);
 		const author = parsedUsers[data.author];
-		
-		if(author === undefined) return;
+
+		if (author === undefined) return;
 
 		setDisplay(author.name);
 	}, [channelUsers, data.author]);

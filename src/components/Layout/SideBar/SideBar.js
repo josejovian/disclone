@@ -1,24 +1,26 @@
-/* -------------------------------------------------------------------------- */
-/*                                   Imports                                  */
-/* -------------------------------------------------------------------------- */
-
 import { Box, Text, useToast, IconButton } from "@chakra-ui/react";
 import { MdLogout, MdKeyboardBackspace } from "react-icons/md";
 
 import React from "react";
 import { connect } from "react-redux";
-import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { useNavigate } from "react-router";
 
-import { writeData, fetchData } from "../utility/Firebase";
 import firebase from "firebase/compat/app";
 import { signOut } from "firebase/auth";
 
 import Channel from "./Channel";
 import NewChannel from "./NewChannel";
-
-import { showErrorToast, showToast } from "../utility/ShowToast";
-import { getInitials, BoxedInitials, getColor } from "../utility/Initials";
+import {
+	getInitials,
+	mapStateToProps,
+	mapDispatchToProps,
+	showErrorToast,
+	showToast,
+	BoxedInitials,
+	getColor,
+	writeData,
+	fetchData,
+} from "../utility";
 
 /* TODO:
  * Add a placeholder channel that appears before the actual channels load.

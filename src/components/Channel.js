@@ -11,7 +11,7 @@ import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { fetchData, writeData } from "../utility/Firebase";
 import firebase from "firebase/compat/app";
 
-import getInitials, { BoxedInitials } from "../utility/Initials";
+import { getInitials, BoxedInitials } from "../utility/Initials";
 import { showErrorToast } from "../utility/ShowToast";
 
 /* -------------------------------------------------------------------------- */
