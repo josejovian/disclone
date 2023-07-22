@@ -4,7 +4,7 @@
 
 import { Box, Text, useToast, IconButton } from "@chakra-ui/react";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { MdMenu } from "react-icons/md";
@@ -109,47 +109,57 @@ const Main = ({
   const toast = useToast();
   const toastIdRef = React.useRef();
 
-  let display =
-    channel !== null && channels !== null && channels[channel] !== undefined
-      ? channels[channel].name
-      : "Unknown Channel";
+  const display = useMemo(
+    () =>
+      channel && channels && channels[channel]
+        ? channels[channel].name
+        : "Unknown Channel",
+    [channel, channels]
+  );
 
-  let cannotSendChat =
-    channel !== null && channels !== null && channels[channel] !== undefined
-      ? channels[channel].property.isReadOnly
-      : false;
+  const cannotSendChat = useMemo(
+    () =>
+      channel && channels && channels[channel]
+        ? channels[channel].property.isReadOnly
+        : false,
+    [channel, channels]
+  );
 
-  let mainWidth = { base: "100vw", lg: "calc(100vw - 384px)" };
+  const writeChat = useCallback(
+    (id, message) => {
+      writeData(`message/${channel}/${id}`, message);
+    },
+    [channel]
+  );
 
-  async function writeChat(id, message) {
-    writeData(`message/${channel}/${id}`, message);
-  }
+  const sendChat = useCallback(
+    async (text) => {
+      let id = await fetchData("counter/");
 
-  async function sendChat(text) {
-    let id = await fetchData("counter/");
+      if (cannotSendChat) return;
 
-    if (cannotSendChat) return;
+      let message = {
+        id: id.message,
+        author: uid,
+        message: text,
+        timestamp: new Date().toLocaleString(),
+      };
 
-    let message = {
-      id: id.message,
-      author: uid,
-      message: text,
-      timestamp: new Date().toLocaleString(),
-    };
+      database
+        .ref("counter/")
+        .child("message")
+        .set(firebase.database.ServerValue.increment(1))
+        .then(() => {
+          writeChat(id.message, message);
+        })
+        .catch((e) => {
+          showErrorToast(toast, toastIdRef);
+        });
+    },
+    [cannotSendChat, toast, uid, writeChat]
+  );
 
-    database
-      .ref("counter/")
-      .child("message")
-      .set(firebase.database.ServerValue.increment(1))
-      .then(() => {
-        writeChat(id.message, message);
-      })
-      .catch((e) => {
-        showErrorToast(toast, toastIdRef);
-      });
-  }
-
-  const Mask = () => {
+  const Mask = useMemo(() => {
     return (
       <Box
         id="mask"
@@ -164,7 +174,7 @@ const Main = ({
         onClick={() => closeDrawer()}
       ></Box>
     );
-  };
+  }, [closeDrawer, drawer]);
 
   return (
     <Box
@@ -234,3 +244,5 @@ const Main = ({
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Main);
+
+const mainWidth = { base: "100vw", lg: "calc(100vw - 384px)" };

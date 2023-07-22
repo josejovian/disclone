@@ -4,7 +4,7 @@
 
 import { Box, Text, useToast } from "@chakra-ui/react";
 
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 
@@ -27,14 +27,15 @@ const Channel = ({ isDummy, uid, name = "", id, setChannel }) => {
   const toast = useToast();
   const toastIdRef = React.useRef();
 
-  async function prepareChannel() {
+  const handlePrepareChannel = useCallback(async () => {
     if (isDummy || id === null) return;
 
     setChannel(id);
-    let data = await fetchData(`channel/${id}`);
-    let members = data.member;
-    let exists = members[uid] === undefined ? false : true;
-    if (exists) return;
+
+    const data = await fetchData(`channel/${id}`);
+    const members = data.member;
+
+    if (!members[uid] === undefined) return;
 
     database
       .ref(`channel/${id}`)
@@ -49,7 +50,7 @@ const Channel = ({ isDummy, uid, name = "", id, setChannel }) => {
       .catch((e) => {
         showErrorToast(toast, toastIdRef);
       });
-  }
+  }, [id, isDummy, setChannel, toast, uid]);
 
   // This is so that the user is automatically added to Welcome channel
   // if they haven't since everyone arrives at the Welcome channel upon sign up or login.
@@ -65,7 +66,7 @@ const Channel = ({ isDummy, uid, name = "", id, setChannel }) => {
       fontFamily="Noto Sans"
       userSelect="none"
       cursor="pointer"
-      onClick={() => prepareChannel()}
+      onClick={handlePrepareChannel}
       _hover={{
         backgroundColor: "#3C393F",
       }}

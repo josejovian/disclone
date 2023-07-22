@@ -3,7 +3,7 @@
 /* -------------------------------------------------------------------------- */
 
 import { Box, useToast } from "@chakra-ui/react";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "./utility/Redux";
 import { Routes, Route, Navigate, useNavigate, Outlet } from "react-router-dom";
@@ -53,14 +53,6 @@ const App = ({
     history("/");
   }
 
-  const initialize = useCallback(async () => {
-    if (user === null) return;
-
-    let rawData = await fetchData(`channel/`);
-    downloadChannel(rawData);
-    setChannel(0);
-  }, [downloadChannel, setChannel, user]);
-
   const getChannels = useCallback(() => {
     onValue(ref(db, `channel/`), (snapshot) => {
       if (snapshot.exists()) {
@@ -71,77 +63,57 @@ const App = ({
     setInit(true);
   }, [downloadChannel]);
 
-  useEffect(() => {
-    if (init === true || user === null) return;
-    async function _initialize() {
-      await initialize();
-      await getChannels();
-    }
-    _initialize();
-  }, [user, init, getChannels, initialize]);
+  const initialize = useCallback(async () => {
+    if (init || user === null) return;
 
-  useEffect(() => {
-    if (channel === null) {
+    let rawData = await fetchData(`channel/`);
+    downloadChannel(rawData);
+    setChannel(0);
+
+    await initialize();
+    getChannels();
+  }, [downloadChannel, getChannels, init, setChannel, user]);
+
+  const handleSwitchChannelData = useCallback(async () => {
+    if (!channel || !channels || !channels[channel]) {
       return;
     }
 
-    const switchChannelData = async () => {
-      if (
-        channels === null ||
-        channel === null ||
-        channels[channel] === undefined
-      )
-        return;
+    onValue(ref(db, `message/${channel}/`), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        chatChannel(Object.values(data));
+      }
+    });
 
-      const getChatOfChannel = () => {
-        if (channel === undefined) return;
-        onValue(ref(db, `message/${channel}/`), (snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            chatChannel(Object.values(data));
-          }
-        });
-      };
+    let members = channels[channel].member;
+    let memberOfChannel = {};
 
-      const getMemberOfChannel = async () => {
-        if (
-          channels === null ||
-          channel === null ||
-          channels[channel] === undefined
-        )
-          return;
+    for await (const [memberId, status] of Object.entries(members)) {
+      let rawData = await fetchData(`user/${memberId}/`);
+      if (rawData !== null) {
+        memberOfChannel = {
+          ...memberOfChannel,
+          [memberId]: rawData,
+        };
+        memberOfChannel[memberId] = rawData;
+      }
+    }
 
-        let members = channels[channel].member;
-        let memberOfChannel = {};
-
-        for await (const [memberId, status] of Object.entries(members)) {
-          let rawData = await fetchData(`user/${memberId}/`);
-          if (rawData !== null) {
-            memberOfChannel = {
-              ...memberOfChannel,
-              [memberId]: rawData,
-            };
-            memberOfChannel[memberId] = rawData;
-          }
-        }
-
-        const stringified = JSON.stringify(memberOfChannel);
-        usersChannel(stringified);
-      };
-
-      await getChatOfChannel();
-      await getMemberOfChannel();
-    };
-
-    switchChannelData();
+    const stringified = JSON.stringify(memberOfChannel);
+    usersChannel(stringified);
   }, [channel, channels, chatChannel, usersChannel]);
+
+  useEffect(() => {
+    handleSwitchChannelData();
+  }, [channel, channels, handleSwitchChannelData]);
 
   /* --------------------- Authentication Functionalities --------------------- */
 
   /* Reference:
    * https://stackoverflow.com/a/69869761
    */
-  const PrivateRoute = () => {
+  const PrivateRoute = useMemo(() => {
     let ls_user = localStorage.getItem("disclone-user");
     let ls_uid = localStorage.getItem("disclone-uid");
 
@@ -150,7 +122,7 @@ const App = ({
     }
 
     return ls_user ? <Outlet /> : <Navigate to="/login" />;
-  };
+  }, [login, user]);
 
   useEffect(() => {
     auth.onAuthStateChanged((c_user) => {

@@ -5,7 +5,7 @@
 import { Box, Text, useToast, IconButton } from "@chakra-ui/react";
 import { MdLogout, MdKeyboardBackspace } from "react-icons/md";
 
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { useNavigate } from "react-router";
@@ -59,37 +59,37 @@ const Side = (props) => {
     zIndex: "4",
   };
 
-  /* ------------------------- Sidebar Functionalities ------------------------ */
+  const newChannel =
+    (async (data) => {
+      let id = await fetchData("counter/");
 
-  async function newChannel(data) {
-    let id = await fetchData("counter/");
+      let channel = {
+        id: id.channel,
+        name: data.name,
+        desc: data.desc,
+        member: {
+          system: true,
+        },
+        countMember: 1,
+        property: {
+          isReadOnly: false,
+        },
+      };
 
-    let channel = {
-      id: id.channel,
-      name: data.name,
-      desc: data.desc,
-      member: {
-        system: true,
-      },
-      countMember: 1,
-      property: {
-        isReadOnly: false,
-      },
-    };
+      database
+        .ref("counter/")
+        .child("channel")
+        .set(firebase.database.ServerValue.increment(1))
+        .then(() => {
+          writeData(`channel/${id.channel}/`, channel);
+        })
+        .catch((e) => {
+          showErrorToast(toast, toastIdRef);
+        });
+    },
+    []);
 
-    database
-      .ref("counter/")
-      .child("channel")
-      .set(firebase.database.ServerValue.increment(1))
-      .then(() => {
-        writeData(`channel/${id.channel}/`, channel);
-      })
-      .catch((e) => {
-        showErrorToast(toast, toastIdRef);
-      });
-  }
-
-  async function logoutAccount() {
+  const logoutAccount = useCallback(() => {
     signOut(props.auth)
       .then(() => {
         history("/");
@@ -108,11 +108,11 @@ const Side = (props) => {
       .catch((error) => {
         showErrorToast(toast, toastIdRef);
       });
-  }
+  }, [history, props, toast]);
 
   /* ------------------------------ Logout Button ----------------------------- */
 
-  const LogOut = ({ logout }) => {
+  const LogOut = useMemo(({ logout }) => {
     return (
       <IconButton
         colorScheme="red"
@@ -124,11 +124,11 @@ const Side = (props) => {
         onClick={logout}
       />
     );
-  };
+  }, []);
 
   /* ---------------------------- List of Channels ---------------------------- */
 
-  const ChannelList = () => {
+  const ChannelList = useMemo(() => {
     let channels = props.channels;
     if (channels === null || channels === undefined) channels = [];
 
@@ -139,12 +139,11 @@ const Side = (props) => {
       let key = val.id;
       return <Channel key={`channel-${key}-${val.name}`} {...val} id={key} />;
     });
-  };
+  }, [props.channels]);
 
   /* ------------------------- The top-part of sidebar ------------------------ */
 
-  const SideHeader = () => {
-    // In other words, if the user is in view channel detail mode.
+  const SideHeader = useMemo(() => {
     if (props.focus !== null) {
       return (
         <Box {...barStyle} justifyContent="flex-start">
@@ -184,11 +183,11 @@ const Side = (props) => {
         </Box>
       );
     }
-  };
+  }, [barStyle, newChannel, props]);
 
   /* ----------------------- The bottom-part of sidebar ----------------------- */
 
-  const SideFooter = () => {
+  const SideFooter = useMemo(() => {
     if (props.user === null) {
       return <></>;
     }
@@ -209,11 +208,11 @@ const Side = (props) => {
         </Box>
       </>
     );
-  };
+  }, [barStyle, logoutAccount, props.user]);
 
   /* -------------- A header text to separate content in sidebar. ------------- */
 
-  const SideContentHeader = ({ text }) => {
+  const SideContentHeader = useMemo(({ text }) => {
     return (
       <Text
         lineHeight="1rem"
@@ -225,18 +224,18 @@ const Side = (props) => {
         {text}
       </Text>
     );
-  };
+  }, []);
 
   /* ----------------------- The middle-part of sidebar ----------------------- */
 
-  const SideContent = () => {
+  const SideContent = useMemo(() => {
     // Prevent errors just in case if the channels haven't been loaded yet.
-    if (props.channels !== undefined && props.focus === null) {
+    if (props.channels && !props.focus) {
       return <ChannelList channels={props.channels} />;
     } else if (
-      props.channels !== null &&
-      props.channels[props.focus] !== undefined &&
-      props.channelUsers !== null
+      props.channels &&
+      props.channels[props.focus] &&
+      props.channelUsers
     ) {
       let ch = JSON.parse(props.channelUsers);
 
@@ -298,7 +297,7 @@ const Side = (props) => {
     } else {
       return <></>;
     }
-  };
+  }, [props.channelUsers, props.channels, props.focus]);
 
   return (
     <>
