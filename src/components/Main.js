@@ -4,7 +4,13 @@
 
 import { Box, Text, useToast, IconButton } from "@chakra-ui/react";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { MdMenu } from "react-icons/md";
@@ -16,30 +22,38 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import Fragment from "./Fragment";
 import SendChat from "./SendChat";
 import { showErrorToast } from "../utility/ShowToast";
+import { increment, ref, update } from "firebase/database";
 
 /* -------------------------------------------------------------------------- */
 /*              Contains the fragments (all chats) in a channel.              */
 /* -------------------------------------------------------------------------- */
 
-const ChatFragments = ({ chats = [] }) => {
+const range = 10;
+
+const ChatFragments = ({ channel, chats = [] }) => {
   /* Reference (for the infinite scroll):
    * https://blog.logrocket.com/4-ways-to-render-large-lists-in-react/
    */
 
-  const range = 10;
   const [count, setCount] = useState({
     prev: Math.max(chats.length - range, 0),
     next: chats.length,
   });
   const [hasMore, setHasMore] = useState(true);
   const [current, setCurrent] = useState(chats.slice(count.prev, count.next));
+  const initialized = useRef(undefined);
 
   const getMoreData = useCallback(() => {
     const floor = Math.max(count.prev - range, 0);
 
     setTimeout(() => {
       let newData = chats.slice(floor, count.prev - 1);
-      setCurrent(newData.concat(current));
+
+      setCurrent((prev) =>
+        newData.concat(
+          prev.filter((old) => !newData.some((d) => d.id === old.id))
+        )
+      );
     }, 1000);
     setCount({
       prev: floor,
@@ -48,7 +62,7 @@ const ChatFragments = ({ chats = [] }) => {
     if (floor === 0) {
       setHasMore(false);
     }
-  }, [current, count, chats]);
+  }, [count.prev, count.next, chats]);
 
   /* Reference
    * https://stackoverflow.com/questions/19614069/get-percentage-scrolled-of-an-element-with-jquery
@@ -60,6 +74,8 @@ const ChatFragments = ({ chats = [] }) => {
     let scrollPercentage =
       (100 * root.scrollTop) / (-root.scrollHeight + root.clientHeight);
 
+    console.log("Scrolling");
+
     if (hasMore && scrollPercentage >= 99) {
       getMoreData();
     }
@@ -70,9 +86,14 @@ const ChatFragments = ({ chats = [] }) => {
     element.onscroll = () => checkAndGetMoreData();
   }, [checkAndGetMoreData]);
 
+  useEffect(() => {
+    setCurrent(chats.slice(Math.max(chats.length - range, 0), chats.length));
+    setHasMore(true);
+  }, [channel, chats]);
+
   return (
     <InfiniteScroll
-      dataLength={chats.length}
+      dataLength={current.length}
       inverse={true}
       next={getMoreData}
       hasMore={hasMore}
@@ -85,7 +106,7 @@ const ChatFragments = ({ chats = [] }) => {
         zIndex="-1"
       >
         {current.map((value, idx) => (
-          <Fragment key={`chat-${value.id}`} data={value} />
+          <Fragment key={`chat-${channel}-${value.id}`} data={value} />
         ))}
       </Box>
     </InfiniteScroll>
@@ -145,21 +166,30 @@ const Main = ({
         timestamp: new Date().toLocaleString(),
       };
 
-      database
-        .ref("counter/")
-        .child("message")
-        .set(firebase.database.ServerValue.increment(1))
-        .then(() => {
-          writeChat(id.message, message);
-        })
-        .catch((e) => {
-          showErrorToast(toast, toastIdRef);
-        });
+      const updates = {};
+      updates[`counter/message`] = increment(1);
+      try {
+        await update(ref(db), updates);
+        writeChat(id.message, message);
+      } catch (e) {
+        showErrorToast(toast, toastIdRef);
+      }
+
+      // database
+      //   .ref("counter/")
+      //   .child("message")
+      //   .set(firebase.database.ServerValue.increment(1))
+      //   .then(() => {
+      //     writeChat(id.message, message);
+      //   })
+      //   .catch((e) => {
+      //     showErrorToast(toast, toastIdRef);
+      //   });
     },
     [cannotSendChat, toast, uid, writeChat]
   );
 
-  const Mask = useMemo(() => {
+  const renderMask = useMemo(() => {
     return (
       <Box
         id="mask"
@@ -176,23 +206,13 @@ const Main = ({
     );
   }, [closeDrawer, drawer]);
 
-  return (
-    <Box
-      display="flex"
-      flexDirection="column-reverse"
-      position="fixed"
-      width={mainWidth}
-      height="100vh"
-      top="0"
-      right="0"
-      paddingLeft="4rem"
-      paddingRight="4rem"
-      bg="#252329"
-      overflowY="auto"
-      id="scrollable"
-    >
-      <Mask />
-      <ChatFragments chats={chats} />
+  const renderChat = useMemo(
+    () => <ChatFragments channel={channel} chats={chats} />,
+    [channel, chats]
+  );
+
+  const renderInputChat = useMemo(
+    () => (
       <Box
         display="flex"
         position="fixed"
@@ -234,6 +254,28 @@ const Main = ({
           </Text>
         </Box>
       </Box>
+    ),
+    [display, openDrawer]
+  );
+
+  return (
+    <Box
+      display="flex"
+      flexDirection="column-reverse"
+      position="fixed"
+      width={mainWidth}
+      height="100vh"
+      top="0"
+      right="0"
+      paddingLeft="4rem"
+      paddingRight="4rem"
+      bg="#252329"
+      overflowY="auto"
+      id="scrollable"
+    >
+      {renderMask}
+      {renderChat}
+      {renderInputChat}
       <SendChat
         chat={sendChat}
         isDisabled={cannotSendChat}

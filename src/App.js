@@ -10,9 +10,7 @@ import { Routes, Route, Navigate, useNavigate, Outlet } from "react-router-dom";
 
 import "firebase/database";
 import "firebase/compat/database";
-import firebase from "firebase/compat/app";
-import { getAuth } from "firebase/auth";
-import { getDatabase, ref, child, get, onValue } from "firebase/database";
+import { ref, child, get, onValue } from "firebase/database";
 
 import { auth, db, fetchData } from "./utility/Firebase";
 import Login from "./pages/Login";
@@ -40,23 +38,24 @@ const App = ({
   logout,
 }) => {
   const [init, setInit] = useState(false);
-  const [init_2, setInit_2] = useState(false);
   const [logged, setLogged] = useState(false);
 
   const toast = useToast();
   const toastIdRef = React.useRef();
-  const history = useNavigate();
+  // const history = useNavigate();
 
   // Force dark mode, I can't figure out the Chakra UI method to do this.
-  if (localStorage.getItem("chakra-ui-color-mode") !== "dark") {
-    localStorage.setItem("chakra-ui-color-mode", "dark");
-    history("/");
-  }
+  // if (localStorage.getItem("chakra-ui-color-mode") !== "dark") {
+  //   localStorage.setItem("chakra-ui-color-mode", "dark");
+  //   history("/");
+  // }
 
   const getChannels = useCallback(() => {
     onValue(ref(db, `channel/`), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
+        console.log("Get Channels:");
+        console.log(data);
         downloadChannel(data);
       }
     });
@@ -67,10 +66,10 @@ const App = ({
     if (init || user === null) return;
 
     let rawData = await fetchData(`channel/`);
+    console.log(rawData);
     downloadChannel(rawData);
     setChannel(0);
 
-    await initialize();
     getChannels();
   }, [downloadChannel, getChannels, init, setChannel, user]);
 
@@ -78,13 +77,6 @@ const App = ({
     if (!channel || !channels || !channels[channel]) {
       return;
     }
-
-    onValue(ref(db, `message/${channel}/`), (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        chatChannel(Object.values(data));
-      }
-    });
 
     let members = channels[channel].member;
     let memberOfChannel = {};
@@ -102,11 +94,41 @@ const App = ({
 
     const stringified = JSON.stringify(memberOfChannel);
     usersChannel(stringified);
-  }, [channel, channels, chatChannel, usersChannel]);
+  }, [channel, channels, usersChannel]);
 
   useEffect(() => {
+    if (!channel || !channels || !channels[channel]) {
+      return;
+    }
+
     handleSwitchChannelData();
-  }, [channel, channels, handleSwitchChannelData]);
+  }, [channel, channels, chatChannel, handleSwitchChannelData]);
+
+  useEffect(() => {
+    if (!channel) return;
+
+    onValue(ref(db, `message/${channel}/`), (snapshot) => {
+      if (snapshot.exists()) {
+        console.log("On Value");
+        const data = snapshot.val();
+        chatChannel(Object.values(data));
+      }
+    });
+  }, [channel, chatChannel]);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  useEffect(() => {
+    console.log("Channel>>");
+    console.log(channel);
+  }, [channel]);
+
+  useEffect(() => {
+    console.log("Focus>>");
+    console.log(channels);
+  }, [channels]);
 
   /* --------------------- Authentication Functionalities --------------------- */
 
@@ -145,7 +167,7 @@ const App = ({
   return (
     <Box className="App">
       <Routes>
-        <Route exact path="/" element={<PrivateRoute />}>
+        <Route exact path="/" element={PrivateRoute}>
           <Route exact path="/" element={<ChatRoom />} />
         </Route>
         <Route path="/register" element={<Register />} />

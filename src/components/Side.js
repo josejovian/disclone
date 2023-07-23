@@ -19,6 +19,7 @@ import NewChannel from "./NewChannel";
 
 import { showErrorToast, showToast } from "../utility/ShowToast";
 import { getInitials, BoxedInitials, getColor } from "../utility/Initials";
+import { increment, ref, update } from "firebase/database";
 
 /* TODO:
  * Add a placeholder channel that appears before the actual channels load.
@@ -44,20 +45,23 @@ const Side = (props) => {
   const toastIdRef = React.useRef();
   const history = useNavigate();
 
-  const barStyle = {
-    display: "flex",
-    position: "fixed",
-    width: "calc(384px)",
-    height: "3.2rem",
-    top: "0",
-    left: { base: "-384px", lg: "0" },
-    paddingLeft: "2rem",
-    paddingRight: "2rem",
-    justifyContent: "space-between",
-    alignItems: "center",
-    shadow: "md",
-    zIndex: "4",
-  };
+  const barStyle = useMemo(
+    () => ({
+      display: "flex",
+      position: "fixed",
+      width: "calc(384px)",
+      height: "3.2rem",
+      top: "0",
+      left: { base: "-384px", lg: "0" },
+      paddingLeft: "2rem",
+      paddingRight: "2rem",
+      justifyContent: "space-between",
+      alignItems: "center",
+      shadow: "md",
+      zIndex: "4",
+    }),
+    []
+  );
 
   const newChannel =
     (async (data) => {
@@ -76,16 +80,26 @@ const Side = (props) => {
         },
       };
 
-      database
-        .ref("counter/")
-        .child("channel")
-        .set(firebase.database.ServerValue.increment(1))
-        .then(() => {
-          writeData(`channel/${id.channel}/`, channel);
-        })
-        .catch((e) => {
-          showErrorToast(toast, toastIdRef);
-        });
+      const updates = {};
+      updates[`counter/channel`] = increment(1);
+      updates[`channel/${id.channel}/`] = channel;
+
+      try {
+        await update(ref(db), updates);
+      } catch (e) {
+        showErrorToast(toast, toastIdRef);
+      }
+
+      // database
+      //   .ref("counter/")
+      //   .child("channel")
+      //   .set(firebase.database.ServerValue.increment(1))
+      //   .then(() => {
+      //     writeData(`channel/${id.channel}/`, channel);
+      //   })
+      //   .catch((e) => {
+      //     showErrorToast(toast, toastIdRef);
+      //   });
     },
     []);
 
@@ -112,7 +126,7 @@ const Side = (props) => {
 
   /* ------------------------------ Logout Button ----------------------------- */
 
-  const LogOut = useMemo(({ logout }) => {
+  const renderLogout = useCallback(({ logout }) => {
     return (
       <IconButton
         colorScheme="red"
@@ -128,7 +142,7 @@ const Side = (props) => {
 
   /* ---------------------------- List of Channels ---------------------------- */
 
-  const ChannelList = useMemo(() => {
+  const renderChannelList = useMemo(() => {
     let channels = props.channels;
     if (channels === null || channels === undefined) channels = [];
 
@@ -143,7 +157,7 @@ const Side = (props) => {
 
   /* ------------------------- The top-part of sidebar ------------------------ */
 
-  const SideHeader = useMemo(() => {
+  const renderSideHeader = useMemo(() => {
     if (props.focus !== null) {
       return (
         <Box {...barStyle} justifyContent="flex-start">
@@ -187,7 +201,7 @@ const Side = (props) => {
 
   /* ----------------------- The bottom-part of sidebar ----------------------- */
 
-  const SideFooter = useMemo(() => {
+  const renderSideFooter = useMemo(() => {
     if (props.user === null) {
       return <></>;
     }
@@ -204,15 +218,17 @@ const Side = (props) => {
           <Text lineHeight="1rem" fontSize="1rem" fontFamily="Noto Sans">
             {props.user.name}
           </Text>
-          <LogOut logout={logoutAccount} />
+          {renderLogout({
+            logout: logoutAccount,
+          })}
         </Box>
       </>
     );
-  }, [barStyle, logoutAccount, props.user]);
+  }, [barStyle, logoutAccount, props.user, renderLogout]);
 
   /* -------------- A header text to separate content in sidebar. ------------- */
 
-  const SideContentHeader = useMemo(({ text }) => {
+  const renderSideContentHeader = useCallback(({ text }) => {
     return (
       <Text
         lineHeight="1rem"
@@ -228,10 +244,10 @@ const Side = (props) => {
 
   /* ----------------------- The middle-part of sidebar ----------------------- */
 
-  const SideContent = useMemo(() => {
+  const renderSideContent = useMemo(() => {
     // Prevent errors just in case if the channels haven't been loaded yet.
     if (props.channels && !props.focus) {
-      return <ChannelList channels={props.channels} />;
+      return renderChannelList;
     } else if (
       props.channels &&
       props.channels[props.focus] &&
@@ -281,7 +297,9 @@ const Side = (props) => {
 
       return (
         <Box marginLeft="2rem" marginTop="2rem">
-          <SideContentHeader text="Channel Description" />
+          {renderSideContentHeader({
+            text: "Channel Description",
+          })}
           <Text
             fontSize="1rem"
             fontFamily="Noto Sans"
@@ -290,14 +308,22 @@ const Side = (props) => {
           >
             {props.channels[props.focus].desc}
           </Text>
-          <SideContentHeader text="Member List" />
+          {renderSideContentHeader({
+            text: "Member List",
+          })}
           {memberList}
         </Box>
       );
     } else {
       return <></>;
     }
-  }, [props.channelUsers, props.channels, props.focus]);
+  }, [
+    props.channelUsers,
+    props.channels,
+    props.focus,
+    renderChannelList,
+    renderSideContentHeader,
+  ]);
 
   return (
     <>
@@ -312,11 +338,11 @@ const Side = (props) => {
         className={props.drawer}
         transition="all 0.5s ease-in-out"
       >
-        <SideHeader />
+        {renderSideHeader}
         <Box position="fixed" width="384px" top="4rem" overflowY="auto">
-          <SideContent />
+          {renderSideContent}
         </Box>
-        <SideFooter />
+        {renderSideFooter}
       </Box>
     </>
   );

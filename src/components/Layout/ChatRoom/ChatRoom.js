@@ -53,33 +53,39 @@ const Main = ({
 
   const mainWidth = { base: "100vw", lg: "calc(100vw - 384px)" };
 
-  async function writeChat(id, message) {
-    writeData(`message/${channel}/${id}`, message);
-  }
+  const writeChat = useCallback(
+    async (id, message) => {
+      writeData(`message/${channel}/${id}`, message);
+    },
+    [channel]
+  );
 
-  async function sendChat(text) {
-    let id = await fetchData("counter/");
+  const sendChat = useCallback(
+    async (text) => {
+      let id = await fetchData("counter/");
 
-    if (cannotSendChat) return;
+      if (cannotSendChat) return;
 
-    let message = {
-      id: id.message,
-      author: uid,
-      message: text,
-      timestamp: new Date().toLocaleString(),
-    };
+      let message = {
+        id: id.message,
+        author: uid,
+        message: text,
+        timestamp: new Date().toLocaleString(),
+      };
 
-    database
-      .ref("counter/")
-      .child("message")
-      .set(firebase.database.ServerValue.increment(1))
-      .then(() => {
-        writeChat(id.message, message);
-      })
-      .catch((e) => {
-        showErrorToast(toast, toastIdRef);
-      });
-  }
+      database
+        .ref("counter/")
+        .child("message")
+        .set(firebase.database.ServerValue.increment(1))
+        .then(() => {
+          writeChat(id.message, message);
+        })
+        .catch((e) => {
+          showErrorToast(toast, toastIdRef);
+        });
+    },
+    [cannotSendChat, database, toast, uid, writeChat]
+  );
 
   const renderDrawerMask = useMemo(() => {
     return (

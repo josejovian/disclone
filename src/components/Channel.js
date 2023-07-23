@@ -9,10 +9,10 @@ import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 
 import { database, db, fetchData, writeData } from "../utility/Firebase";
-import firebase from "firebase/compat/app";
 
 import { getInitials, BoxedInitials } from "../utility/Initials";
 import { showErrorToast } from "../utility/ShowToast";
+import { increment, ref, update } from "firebase/database";
 
 /* -------------------------------------------------------------------------- */
 /*             A component for a channel button on the right side.            */
@@ -37,19 +37,32 @@ const Channel = ({ isDummy, uid, name = "", id, setChannel }) => {
 
     if (!members[uid] === undefined) return;
 
-    database
-      .ref(`channel/${id}`)
-      .child(`countMember`)
-      .set(firebase.database.ServerValue.increment(1))
-      .then(() => {
-        writeData(`channel/${id}/member/`, {
-          ...members,
-          [uid]: true,
-        });
-      })
-      .catch((e) => {
-        showErrorToast(toast, toastIdRef);
-      });
+    const updates = {};
+    updates[`channel/${id}/countMember`] = increment(1);
+    updates[`channel/${id}/member`] = {
+      ...members,
+      [uid]: true,
+    };
+
+    try {
+      await update(ref(db), updates);
+    } catch (e) {
+      showErrorToast(toast, toastIdRef);
+    }
+
+    // database
+    //   .ref(`channel/${id}`)
+    //   .child(`countMember`)
+    //   .set(firebase.database.ServerValue.increment(1))
+    //   .then(() => {
+    //     writeData(`channel/${id}/member/`, {
+    //       ...members,
+    //       [uid]: true,
+    //     });
+    //   })
+    //   .catch((e) => {
+    //     showErrorToast(toast, toastIdRef);
+    //   });
   }, [id, isDummy, setChannel, toast, uid]);
 
   // This is so that the user is automatically added to Welcome channel
