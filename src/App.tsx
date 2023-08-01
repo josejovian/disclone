@@ -140,7 +140,7 @@ const App = ({
     let ls_uid = localStorage.getItem("disclone-uid");
 
     if (user === null && ls_uid !== null) {
-      login(JSON.parse(ls_user), ls_uid);
+      login(JSON.parse(ls_user as any), ls_uid);
     }
 
     return ls_user ? <Outlet /> : <Navigate to="/login" />;
@@ -167,8 +167,8 @@ const App = ({
   return (
     <Box className="App">
       <Routes>
-        <Route exact path="/" element={PrivateRoute}>
-          <Route exact path="/" element={<ChatRoom />} />
+        <Route path="/" element={PrivateRoute}>
+          <Route path="/" element={<ChatRoom />} />
         </Route>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
