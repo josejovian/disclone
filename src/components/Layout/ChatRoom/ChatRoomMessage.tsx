@@ -1,14 +1,10 @@
-import { Box, Text, Stack } from "@chakra-ui/react";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { BoxedInitials } from "../utility/Initials";
-import { MessageType, UserType } from "../types";
-import { useIdentity } from "../hooks";
+import { Box, Text, Stack } from "@chakra-ui/react";
+import { MessageType, UserType } from "@/src/types";
+import { BoxedInitials } from "../../Initials";
+import { useIdentity } from "../../../hooks";
 
-/* -------------------------------------------------------------------------- */
-/*           A fragment that represents one, singular chat message.           */
-/* -------------------------------------------------------------------------- */
-
-export function Fragment({ data }: { data: MessageType }) {
+export function ChatRoomMessage({ data }: { data: MessageType }) {
   const [user, setUser] = useState<UserType>();
   const [initialize, setInitialize] = useState(false);
   const { getUser } = useIdentity();

@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { UserType } from "../types";
-import { useIdentity } from "../hooks";
 import { Box, Text } from "@chakra-ui/react";
-import { BoxedInitials } from "../utility";
+import { BoxedInitials } from "../../Initials";
+import { UserType } from "../../../types";
+import { useIdentity } from "../../../hooks";
 
-interface MemberListProps {
+interface SideChannelMemberProps {
   userId: string;
 }
 
-export function MemberList({ userId }: MemberListProps) {
+export function SideChannelMember({ userId }: SideChannelMemberProps) {
   const [user, setUser] = useState<UserType | null>();
   const [initialize, setInitialize] = useState(false);
   const { getUser } = useIdentity();

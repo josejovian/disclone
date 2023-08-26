@@ -1,32 +1,9 @@
-/* -------------------------------------------------------------------------- */
-/*                                   Imports                                  */
-/* -------------------------------------------------------------------------- */
-
-import { Box, Text, useToast } from "@chakra-ui/react";
-
-import React, { useCallback, useEffect, useMemo } from "react";
-import { connect } from "react-redux";
-import {
-  mapStateToProps,
-  mapDispatchToProps,
-  setChannel,
-} from "../utility/Redux";
-
-import { db, fetchData, writeData } from "../utility/Firebase";
-
-import { getInitials, BoxedInitials } from "../utility/Initials";
-import { showErrorToast } from "../utility/ShowToast";
+import React, { useCallback } from "react";
 import { increment, ref, update } from "firebase/database";
-import { ChannelType, StateType, UserType } from "../types";
-
-/* -------------------------------------------------------------------------- */
-/*             A component for a channel button on the right side.            */
-/* -------------------------------------------------------------------------- */
-
-/* TODO:
- * Add a placeholder channel that appears before the actual channels load.
- * At some point it worked, but some changes will have to be done to make it work again.
- */
+import { Box, Text, useToast } from "@chakra-ui/react";
+import { BoxedInitials } from "../../Initials";
+import { db, fetchData, showErrorToast } from "../../../utility";
+import { ChannelType, StateType, UserType } from "../../../types";
 
 interface ChannelProps {
   isDummy?: boolean;
@@ -36,7 +13,7 @@ interface ChannelProps {
   stateFocus: StateType<boolean>;
 }
 
-export function Channel({
+export function SideChannel({
   isDummy,
   channel,
   user,
@@ -91,7 +68,7 @@ export function Channel({
         backgroundColor: "#3C393F",
       }}
     >
-      <BoxedInitials size="2rem" color="#252329" initials={getInitials(name)} />
+      <BoxedInitials size="2rem" color="#252329" name={name} />
       <Text
         color="#BDBDBD"
         fontWeight="700"

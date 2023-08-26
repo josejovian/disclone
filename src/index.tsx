@@ -5,33 +5,14 @@ import { App } from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { ChakraProvider } from "@chakra-ui/react";
 import { BrowserRouter } from "react-router-dom";
-import { createStore } from "redux";
-import { ColorModeScript } from "@chakra-ui/react";
-import { store } from "./components/redux";
+import { store } from "./redux";
 import { Provider } from "react-redux";
-
-const config = {
-  initialColorMode: "dark",
-  useSystemColorMode: false,
-};
-
-const initialState = {
-  channels: null,
-  channel: 0,
-  user: null,
-  channelUsers: null,
-  chats: [],
-  database: null,
-  db: null,
-  auth: null,
-  focus: 0,
-  drawer: "",
-};
+import theme from "./theme";
 
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <ChakraProvider>
+      <ChakraProvider theme={theme}>
         <BrowserRouter>
           <App />
         </BrowserRouter>

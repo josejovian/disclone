@@ -1,27 +1,34 @@
-import { Box } from "@chakra-ui/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { Fragment } from "../../Fragment";
+import { Box } from "@chakra-ui/react";
+import { ChatRoomMessage } from "./ChatRoomMessage";
 
-export const ChatFragments = ({ chats = [] }) => {
+const range = 20;
+
+export function ChatRoomMessages({ channel, chats = [] }: any) {
   /* Reference (for the infinite scroll):
    * https://blog.logrocket.com/4-ways-to-render-large-lists-in-react/
    */
 
-  const range = 10;
   const [count, setCount] = useState({
     prev: Math.max(chats.length - range, 0),
     next: chats.length,
   });
   const [hasMore, setHasMore] = useState(true);
   const [current, setCurrent] = useState(chats.slice(count.prev, count.next));
+  const initialized = useRef(undefined);
 
   const getMoreData = useCallback(() => {
     const floor = Math.max(count.prev - range, 0);
 
     setTimeout(() => {
       let newData = chats.slice(floor, count.prev - 1);
-      setCurrent(newData.concat(current));
+
+      setCurrent((prev) =>
+        newData.concat(
+          prev.filter((old) => !newData.some((d) => d.id === old.id))
+        )
+      );
     }, 1000);
     setCount({
       prev: floor,
@@ -29,9 +36,8 @@ export const ChatFragments = ({ chats = [] }) => {
     });
     if (floor === 0) {
       setHasMore(false);
-      console.log("Run out of contents to render.");
     }
-  }, [current, count, chats]);
+  }, [count.prev, count.next, chats]);
 
   /* Reference
    * https://stackoverflow.com/questions/19614069/get-percentage-scrolled-of-an-element-with-jquery
@@ -40,8 +46,13 @@ export const ChatFragments = ({ chats = [] }) => {
    */
   const checkAndGetMoreData = useCallback(() => {
     const root = document.getElementById("scrollable");
+
+    if (!root) return;
+
     let scrollPercentage =
       (100 * root.scrollTop) / (-root.scrollHeight + root.clientHeight);
+
+    console.log("Scrolling");
 
     if (hasMore && scrollPercentage >= 99) {
       getMoreData();
@@ -53,10 +64,18 @@ export const ChatFragments = ({ chats = [] }) => {
     element.onscroll = () => checkAndGetMoreData();
   }, [checkAndGetMoreData]);
 
+  useEffect(() => {
+    setCurrent(chats.slice(Math.max(chats.length - range, 0), chats.length));
+    setHasMore(true);
+  }, [channel, chats]);
+
+  console.log(current);
+
   return (
     <InfiniteScroll
+      hasChildren={true}
       loader={<></>}
-      dataLength={chats.length}
+      dataLength={current.length}
       inverse={true}
       next={getMoreData}
       hasMore={hasMore}
@@ -69,9 +88,9 @@ export const ChatFragments = ({ chats = [] }) => {
         zIndex="-1"
       >
         {current.map((value, idx) => (
-          <Fragment key={`chat-${value.id}`} data={value} />
+          <ChatRoomMessage key={`chat-${channel}-${value.id}`} data={value} />
         ))}
       </Box>
     </InfiniteScroll>
   );
-};
+}

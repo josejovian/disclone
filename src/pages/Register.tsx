@@ -1,21 +1,15 @@
+import { useRef, useCallback, useMemo, useEffect } from "react";
 import { Text, useToast } from "@chakra-ui/react";
-import { useRef, useCallback, useMemo } from "react";
-import { connect } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { showToast, showErrorToast } from "../utility/ShowToast";
-import {
-  mapStateToProps,
-  mapDispatchToProps,
-  writeData,
-  db,
-  auth,
-} from "../utility";
 import { AuthLayout, AuthRegisterForm } from "../components";
+import { useUser } from "../hooks";
+import { showToast, showErrorToast, writeData, auth } from "../utility";
 
-const Register = ({ login }) => {
+export function Register() {
   const toast = useToast();
   const toastIdRef = useRef();
+  const [user, setUser] = useUser();
   const history = useNavigate();
 
   const onGetCredentials = useCallback(
@@ -26,15 +20,17 @@ const Register = ({ login }) => {
         isMuted: false,
       };
       writeData(`user/${cred.user.uid}`, userData);
-      login(userData, cred.user.uid);
+      setUser({
+        ...userData,
+        id: cred.user.uid,
+      });
     },
-    [login]
+    [setUser]
   );
 
   const onSuccess = useCallback(
     (result) => {
       if (result === null) {
-        login(true);
         history("/");
         showToast(
           toast,
@@ -47,7 +43,7 @@ const Register = ({ login }) => {
         );
       }
     },
-    [history, login, toast]
+    [history, toast]
   );
 
   const handleRegisterAccount = useCallback(
@@ -93,12 +89,14 @@ const Register = ({ login }) => {
     []
   );
 
+  useEffect(() => {
+    if (user) history("/");
+  }, [history, user]);
+
   return (
     <AuthLayout>
       {renderAuthHeader}
       <AuthRegisterForm onSubmit={handleRegisterAccount} />
     </AuthLayout>
   );
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Register);
+}

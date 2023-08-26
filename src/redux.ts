@@ -4,7 +4,6 @@ import {
   ValidateSliceCaseReducers,
   SliceCaseReducers,
 } from "@reduxjs/toolkit";
-import { UserType, UsersType } from "../types";
 import { useSelector } from "react-redux";
 import { useMemo } from "react";
 

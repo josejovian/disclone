@@ -1,7 +1,5 @@
-import { Box, Text, Image } from "@chakra-ui/react";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { UserType } from "../types";
-import { useIdentity } from "../hooks";
+import React, { useMemo } from "react";
+import { Box, Text } from "@chakra-ui/react";
 
 export interface BoxedInitialsProps {
   color?: string;
@@ -17,9 +15,9 @@ export function BoxedInitials(props: BoxedInitialsProps) {
     () =>
       name
         ? {
-            ...props,
             initials: getInitials(name),
             color: getColor(name),
+            ...props,
           }
         : props,
     [name, props]

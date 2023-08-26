@@ -1,7 +1,4 @@
-/* -------------------------------------------------------------------------- */
-/*                                   Imports                                  */
-/* -------------------------------------------------------------------------- */
-
+import { useMemo } from "react";
 import {
   HStack,
   Button,
@@ -17,58 +14,42 @@ import {
 } from "@chakra-ui/react";
 import { MdAdd } from "react-icons/md";
 import { Formik, Form } from "formik";
-import { ValidationInput, validateWithRules } from "../utility/Validation";
-import { useMemo } from "react";
+import * as Yup from "yup";
+import { FormInput } from "../../Form";
 
-/* -------------------------------------------------------------------------- */
-/*                        New channel button component.                       */
-/* -------------------------------------------------------------------------- */
+const NewChannelSchema = Yup.object().shape({
+  name: Yup.string()
+    .min(2, "Channel name is too short!")
+    .max(20, "Channel name is too long!")
+    .required("Channel name is required!"),
+  desc: Yup.string()
+    .min(2, "Channel description is too short!")
+    .max(50, "Channel description is too long!")
+    .required("Channel description is required!"),
+});
 
-/* TODO (?):
- * Might have to create another "Form" component that yields an entire form,
- * given "columns" of the form.
- */
+interface NewChannelProps {
+  createNewChannel: (data: any) => void;
+}
 
-const NewChannel = ({ newChannel }) => {
+export function NewChannel({ createNewChannel }: NewChannelProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const validateManager = useMemo(
-    () => ({
-      name: (value) => {
-        return validateWithRules(columnRules, "Channel Name", "name", value);
-      },
-      desc: (value) => {
-        return validateWithRules(
-          columnRules,
-          "Channel Description",
-          "desc",
-          value
-        );
-      },
-    }),
-    []
-  );
 
   const renderForm = useMemo(
     () => (
       <Formik
         initialValues={{ name: "", desc: "" }}
+        validationSchema={NewChannelSchema}
         onSubmit={async (values, actions) => {
-          newChannel(values);
+          createNewChannel(values);
           actions.setSubmitting(false);
         }}
       >
         {(props) => (
           <Form>
             <ModalBody padding="0 1rem!important">
-              <ValidationInput
-                validateManager={validateManager}
-                name="name"
-                display="Channel Name"
-                type="text"
-              />
-              <ValidationInput
-                validateManager={validateManager}
+              <FormInput name="name" display="Channel Name" type="text" />
+              <FormInput
                 name="desc"
                 display="Channel Description"
                 type="textarea"
@@ -92,12 +73,13 @@ const NewChannel = ({ newChannel }) => {
         )}
       </Formik>
     ),
-    [newChannel, onClose, validateManager]
+    [createNewChannel, onClose]
   );
 
   return (
     <>
       <IconButton
+        aria-label="Create Channel"
         colorScheme="gray"
         icon={<MdAdd />}
         minWidth="0"
@@ -115,19 +97,4 @@ const NewChannel = ({ newChannel }) => {
       </Modal>
     </>
   );
-};
-
-export default NewChannel;
-
-const columnRules = {
-  name: {
-    required: true,
-    alphanumeric: true,
-    maxLength: 20,
-  },
-  desc: {
-    required: true,
-    alphanumeric: true,
-    maxLength: 30,
-  },
-};
+}

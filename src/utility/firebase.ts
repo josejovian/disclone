@@ -2,7 +2,6 @@ import { ref, set, child, get } from "firebase/database";
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
-// import { getFirestore } from "firebase/firestore";
 
 const config = {
   apiKey: process.env.REACT_APP_API_KEY,

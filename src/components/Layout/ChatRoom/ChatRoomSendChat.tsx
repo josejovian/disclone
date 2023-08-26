@@ -1,14 +1,6 @@
-/* -------------------------------------------------------------------------- */
-/*                                   Imports                                  */
-/* -------------------------------------------------------------------------- */
-
-import { Box, Input, Icon, IconButton } from "@chakra-ui/react";
 import { useCallback, useState } from "react";
+import { Box, Input, Icon, IconButton } from "@chakra-ui/react";
 import { MdSend } from "react-icons/md";
-
-/* -------------------------------------------------------------------------- */
-/*                      Send chat Input form and Button                       */
-/* -------------------------------------------------------------------------- */
 
 interface SendChatProps {
   onSendChat: (chat: string) => void;

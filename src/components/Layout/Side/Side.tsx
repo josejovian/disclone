@@ -1,28 +1,27 @@
-/* -------------------------------------------------------------------------- */
-/*                                   Imports                                  */
-/* -------------------------------------------------------------------------- */
-
+import { useCallback, useMemo, useState, useRef } from "react";
+import { useNavigate } from "react-router";
+import { increment, ref, update } from "firebase/database";
+import { signOut } from "firebase/auth";
 import { Box, Text, useToast, IconButton } from "@chakra-ui/react";
 import { MdLogout, MdKeyboardBackspace } from "react-icons/md";
-
-import React, { useCallback, useMemo, useState } from "react";
-import { connect } from "react-redux";
-import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
-import { useNavigate } from "react-router";
-
-import { writeData, fetchData, db, auth } from "../utility/Firebase";
-import firebase from "firebase/compat/app";
-import { signOut } from "firebase/auth";
-
-import { Channel } from "./Channel";
-import NewChannel from "./NewChannel";
-
-import { showErrorToast, showToast } from "../utility/ShowToast";
-import { getInitials, BoxedInitials, getColor } from "../utility/Initials";
-import { increment, ref, update } from "firebase/database";
-import { useUser } from "../hooks";
-import { ChannelType, StateType } from "../types";
-import { MemberList } from "./MemberList";
+import {
+  SideChannel,
+  NewChannel,
+  SideChannelMember,
+  SideHeading,
+  SideChannelDescription,
+  SideChannelList,
+  BoxedInitials,
+} from "../../../components";
+import {
+  fetchData,
+  db,
+  auth,
+  showErrorToast,
+  showToast,
+} from "../../../utility";
+import { useUser } from "../../../hooks";
+import { ChannelType, StateType } from "../../../types";
 
 export interface SideProps {
   stateChannels: StateType<Record<number, ChannelType>>;
@@ -36,14 +35,14 @@ export function Side({
   stateSelectedChannel,
 }: SideProps) {
   const toast = useToast();
-  const toastIdRef = React.useRef();
+  const toastIdRef = useRef();
 
   const stateFocus = useState(false);
   const [focus, setFocus] = stateFocus;
 
   const history = useNavigate();
   const stateUser = useUser();
-  const user = stateUser[0];
+  const [user, setUser] = stateUser;
   const [side, setSide] = stateSide;
   const channels = stateChannels[0];
   console.log(channels);
@@ -98,17 +97,6 @@ export function Side({
       } catch (e) {
         showErrorToast(toast, toastIdRef);
       }
-
-      // database
-      //   .ref("counter/")
-      //   .child("channel")
-      //   .set(firebase.database.ServerValue.increment(1))
-      //   .then(() => {
-      //     writeData(`channel/${id.channel}/`, channel);
-      //   })
-      //   .catch((e) => {
-      //     showErrorToast(toast, toastIdRef);
-      //   });
     },
     [toast]
   );
@@ -117,6 +105,7 @@ export function Side({
     signOut(auth)
       .then(() => {
         history("/");
+        setUser(null);
         showToast(
           toast,
           toastIdRef,
@@ -127,12 +116,12 @@ export function Side({
           true
         );
         // props.logout();
-        // window.location.reload();
+        window.location.reload();
       })
       .catch((error) => {
         showErrorToast(toast, toastIdRef);
       });
-  }, [history, toast]);
+  }, [history, setUser, toast]);
 
   const renderLogout = useMemo(() => {
     return (
@@ -152,7 +141,7 @@ export function Side({
   const renderChannelList = useMemo(
     () =>
       Object.entries(channels).map(([id, channel]) => (
-        <Channel
+        <SideChannel
           key={`channel-${id}`}
           stateFocus={stateFocus}
           stateSelectedChannel={stateSelectedChannel}
@@ -202,7 +191,7 @@ export function Side({
           >
             Channels
           </Text>
-          <NewChannel newChannel={handleCreateNewChannel} />
+          <NewChannel createNewChannel={handleCreateNewChannel} />
         </Box>
       ),
     [focus, barStyle, setFocus, handleCreateNewChannel]
@@ -228,27 +217,11 @@ export function Side({
     );
   }, [barStyle, renderLogout, user]);
 
-  const renderSideContentHeader = useCallback(({ text }: { text: string }) => {
-    return (
-      <Text
-        lineHeight="1rem"
-        fontWeight="600"
-        fontFamily="Noto Sans"
-        textTransform="uppercase"
-        marginBottom="1rem"
-      >
-        {text}
-      </Text>
-    );
-  }, []);
-
   const renderChannelDescription = useMemo(
     () =>
       channel && (
         <Box marginLeft="2rem" marginTop="2rem">
-          {renderSideContentHeader({
-            text: "Channel Description",
-          })}
+          <SideHeading>Channel Description</SideHeading>
           <Text
             fontSize="1rem"
             fontFamily="Noto Sans"
@@ -257,20 +230,28 @@ export function Side({
           >
             {channel.desc}
           </Text>
-          {renderSideContentHeader({
-            text: "Member List",
-          })}
+          <SideHeading>Member List</SideHeading>
           {Object.keys(channel.member).map((member) => (
-            <MemberList userId={member} key={member} />
+            <SideChannelMember userId={member} key={member} />
           ))}
         </Box>
       ),
-    [channel, renderSideContentHeader]
+    [channel]
   );
 
   const renderSideContent = useMemo(
-    () => (focus ? renderChannelDescription : renderChannelList),
-    [focus, renderChannelDescription, renderChannelList]
+    () =>
+      focus && channel ? (
+        <SideChannelDescription channel={channel} />
+      ) : (
+        <SideChannelList
+          channels={channels}
+          stateFocus={stateFocus}
+          stateSelectedChannel={stateSelectedChannel}
+          user={user}
+        />
+      ),
+    [channel, channels, focus, stateFocus, stateSelectedChannel, user]
   );
 
   return (
