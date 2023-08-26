@@ -3,32 +3,35 @@
 /* -------------------------------------------------------------------------- */
 
 import { Box, Input, Icon, IconButton } from "@chakra-ui/react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { MdSend } from "react-icons/md";
 
 /* -------------------------------------------------------------------------- */
 /*                      Send chat Input form and Button                       */
 /* -------------------------------------------------------------------------- */
 
-const SendChat = ({ chat, isDisabled, mainWidth }) => {
-  const sendChat = useCallback(() => {
-    let text = document.getElementById("chat");
+interface SendChatProps {
+  onSendChat: (chat: string) => void;
+  isDisabled?: boolean;
+  mainWidth?: number;
+}
 
-    // Prevent users from sending just spaces.
+export function SendChat({ onSendChat, isDisabled, mainWidth }: SendChatProps) {
+  const [chat, setChat] = useState("");
+
+  const sendChat = useCallback(() => {
     let spaces = true;
-    for (let i = 0; i < text.value.length; i++) {
-      if (text.value[i] !== " ") {
+    for (let i = 0; i < chat.length; i++) {
+      if (chat[i] !== " ") {
         spaces = false;
       }
     }
 
     if (spaces === true) return;
+    onSendChat(chat);
+    setChat("");
+  }, [chat, onSendChat]);
 
-    chat(text.value);
-    text.value = "";
-  }, [chat]);
-
-  // User can also use ENTER to send messages.
   const enter = useCallback(
     (event) => {
       if (event.keyCode === 13) {
@@ -66,6 +69,8 @@ const SendChat = ({ chat, isDisabled, mainWidth }) => {
           placeholder="Type message here"
           autoComplete="off"
           onKeyUp={enter}
+          value={chat}
+          onChange={(e) => setChat(e.target.value)}
           isDisabled={isDisabled}
         />
         <IconButton
@@ -77,11 +82,11 @@ const SendChat = ({ chat, isDisabled, mainWidth }) => {
           icon={<Icon as={MdSend} />}
           zIndex="1"
           onClick={sendChat}
-          isDisabled={isDisabled}
+          isDisabled={isDisabled || chat.length === 0}
         />
       </Box>
     </Box>
   );
-};
+}
 
 export default SendChat;

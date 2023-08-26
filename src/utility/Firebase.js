@@ -16,26 +16,12 @@ export const db = getDatabase(app);
 export const auth = getAuth();
 
 export async function fetchData(link) {
-  if (db === null || db === undefined) {
-    return;
-  }
-
-  let promise = new Promise(function (res, rej) {
-    get(child(ref(db), link))
-      .then((snapshot) => {
-        let data = null;
-        if (snapshot.exists()) {
-          data = snapshot.val();
-        }
-        res(data);
-      })
-      .catch((error) => {
-        rej(error);
-      });
+  return get(child(ref(db), link)).then((snapshot) => {
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+    return null;
   });
-
-  let result = await promise;
-  return result;
 }
 
 export async function writeData(link, data) {

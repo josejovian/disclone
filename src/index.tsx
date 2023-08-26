@@ -1,13 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import App from "./App";
+import { App } from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { ChakraProvider } from "@chakra-ui/react";
 import { BrowserRouter } from "react-router-dom";
-import { Provider } from "react-redux";
 import { createStore } from "redux";
 import { ColorModeScript } from "@chakra-ui/react";
+import { store } from "./components/redux";
+import { Provider } from "react-redux";
 
 const config = {
   initialColorMode: "dark",
@@ -26,70 +27,6 @@ const initialState = {
   focus: 0,
   drawer: "",
 };
-
-export const reducer = (state = initialState, action: any) => {
-  switch (action.type) {
-    case "DRAWER_OPEN":
-      return {
-        ...state,
-        drawer: "drawer-open",
-      };
-    case "DRAWER_CLOSE":
-      return {
-        ...state,
-        drawer: "",
-      };
-    case "CONFIG_INITIALIZE":
-      return {
-        ...state,
-        db: action.db,
-        database: action.database,
-        auth: action.auth,
-      };
-    case "FOCUS_REMOVE":
-      return {
-        ...state,
-        focus: null,
-      };
-    case "CHANNEL_SWITCH":
-      return {
-        ...state,
-        channel: action.channel,
-        focus: action.focus,
-      };
-    case "CHANNEL_ALL":
-      return {
-        ...state,
-        channels: action.channels,
-      };
-    case "CHANNEL_CHAT":
-      return {
-        ...state,
-        chats: action.chats,
-      };
-    case "CHANNEL_USERS":
-      return {
-        ...state,
-        channelUsers: action.channelUsers,
-      };
-    case "USER_LOGIN":
-      return {
-        ...state,
-        user: action.user,
-        uid: action.uid,
-      };
-    case "USER_LOGOUT":
-      return {
-        channels: null,
-        channel: null,
-        user: null,
-      };
-    default:
-      return state;
-  }
-};
-
-export const store = createStore(reducer as any);
 
 ReactDOM.render(
   <React.StrictMode>

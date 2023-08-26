@@ -15,14 +15,15 @@ import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { MdMenu } from "react-icons/md";
 
-import { writeData, fetchData, database, db } from "../utility/Firebase";
+import { writeData, fetchData, db } from "../utility/Firebase";
 import firebase from "firebase/compat/app";
 
 import InfiniteScroll from "react-infinite-scroll-component";
-import Fragment from "./Fragment";
+import { Fragment } from "./Fragment";
 import SendChat from "./SendChat";
 import { showErrorToast } from "../utility/ShowToast";
 import { increment, ref, update } from "firebase/database";
+import { ChannelType, MessageType, StateType, UserType } from "../types";
 
 /* -------------------------------------------------------------------------- */
 /*              Contains the fragments (all chats) in a channel.              */
@@ -30,7 +31,7 @@ import { increment, ref, update } from "firebase/database";
 
 const range = 10;
 
-const ChatFragments = ({ channel, chats = [] }) => {
+const ChatFragments = ({ channel, chats = [] }: any) => {
   /* Reference (for the infinite scroll):
    * https://blog.logrocket.com/4-ways-to-render-large-lists-in-react/
    */
@@ -71,6 +72,9 @@ const ChatFragments = ({ channel, chats = [] }) => {
    */
   const checkAndGetMoreData = useCallback(() => {
     const root = document.getElementById("scrollable");
+
+    if (!root) return;
+
     let scrollPercentage =
       (100 * root.scrollTop) / (-root.scrollHeight + root.clientHeight);
 
@@ -91,8 +95,13 @@ const ChatFragments = ({ channel, chats = [] }) => {
     setHasMore(true);
   }, [channel, chats]);
 
+  console.log(current);
+
   return (
     <InfiniteScroll
+      hasChildren={true}
+      endMessage="Already End"
+      loader={<></>}
       dataLength={current.length}
       inverse={true}
       next={getMoreData}
@@ -117,60 +126,62 @@ const ChatFragments = ({ channel, chats = [] }) => {
 /*                               Main Component                               */
 /* -------------------------------------------------------------------------- */
 
-const Main = ({
-  chats = [],
+interface MainProps {
+  channel?: ChannelType;
+  user: UserType;
+  stateChats: StateType<MessageType[]>;
+  stateSide: StateType<boolean>;
+}
+
+export function Main({
   user,
   channel,
-  channels,
-  uid,
-  drawer,
-  openDrawer,
-  closeDrawer,
-}) => {
+  stateChats,
+  stateSide,
+}: // chats = [],
+// user,
+// channel,
+// channels,
+// userId,
+// drawer,
+// openDrawer,
+// closeDrawer,
+MainProps) {
   const toast = useToast();
   const toastIdRef = React.useRef();
 
-  const display = useMemo(
-    () =>
-      channel && channels && channels[channel]
-        ? channels[channel].name
-        : "Unknown Channel",
-    [channel, channels]
-  );
-
-  const cannotSendChat = useMemo(
-    () =>
-      channel && channels && channels[channel]
-        ? channels[channel].property.isReadOnly
-        : false,
-    [channel, channels]
-  );
+  const [side, setSide] = stateSide;
+  const [chats, setChats] = stateChats;
+  const cannotSendChat = channel?.property.isReadOnly;
+  const { id: userId } = user;
 
   const writeChat = useCallback(
     (id, message) => {
-      writeData(`message/${channel}/${id}`, message);
+      writeData(`message/${channel.id}/${id}`, message);
     },
     [channel]
   );
 
-  const sendChat = useCallback(
+  const handleSendChat = useCallback(
     async (text) => {
-      let id = await fetchData("counter/");
+      let newId = await fetchData("counter/");
 
       if (cannotSendChat) return;
 
       let message = {
-        id: id.message,
-        author: uid,
+        id: newId.message,
+        author: userId,
         message: text,
         timestamp: new Date().toLocaleString(),
       };
 
-      const updates = {};
+      console.log("ID!!");
+
+      const updates: any = {};
       updates[`counter/message`] = increment(1);
       try {
         await update(ref(db), updates);
-        writeChat(id.message, message);
+        writeData(`message/${channel.id}/${message.id}`, message);
       } catch (e) {
         showErrorToast(toast, toastIdRef);
       }
@@ -186,14 +197,14 @@ const Main = ({
       //     showErrorToast(toast, toastIdRef);
       //   });
     },
-    [cannotSendChat, toast, uid, writeChat]
+    [cannotSendChat, channel.id, toast, userId]
   );
 
   const renderMask = useMemo(() => {
     return (
       <Box
         id="mask"
-        display={drawer !== "" ? "unset" : "none"}
+        display={side ? "unset" : "none"}
         position="fixed"
         width="100vw"
         height="100vh"
@@ -201,10 +212,10 @@ const Main = ({
         left="0"
         zIndex="2"
         background="rgba(0.2, 0.2, 0.2, 0.4)"
-        onClick={() => closeDrawer()}
+        onClick={() => setSide((prev) => !prev)}
       ></Box>
     );
-  }, [closeDrawer, drawer]);
+  }, [setSide, side]);
 
   const renderChat = useMemo(
     () => <ChatFragments channel={channel} chats={chats} />,
@@ -235,6 +246,7 @@ const Main = ({
           shadow="md"
         >
           <IconButton
+            aria-label="Toggle Drawer"
             display={{ base: "flex", lg: "none" }}
             colorScheme="gray"
             icon={<MdMenu />}
@@ -242,7 +254,7 @@ const Main = ({
             width="2rem"
             height="2rem"
             marginRight="2rem"
-            onClick={() => openDrawer()}
+            onClick={() => setSide((prev) => !prev)}
           />
           <Text
             lineHeight="1rem"
@@ -250,12 +262,12 @@ const Main = ({
             fontWeight="bold"
             fontFamily="Noto Sans"
           >
-            {display}
+            {channel?.name ?? "Unknown Channel"}
           </Text>
         </Box>
       </Box>
     ),
-    [display, openDrawer]
+    [channel?.name, setSide]
   );
 
   return (
@@ -277,14 +289,12 @@ const Main = ({
       {renderChat}
       {renderInputChat}
       <SendChat
-        chat={sendChat}
+        onSendChat={handleSendChat}
         isDisabled={cannotSendChat}
-        mainWidth={mainWidth}
+        // mainWidth={mainWidth}
       />
     </Box>
   );
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Main);
+}
 
 const mainWidth = { base: "100vw", lg: "calc(100vw - 384px)" };

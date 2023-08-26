@@ -4,15 +4,20 @@
 
 import { Box, Text, useToast } from "@chakra-ui/react";
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { connect } from "react-redux";
-import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
+import {
+  mapStateToProps,
+  mapDispatchToProps,
+  setChannel,
+} from "../utility/Redux";
 
-import { database, db, fetchData, writeData } from "../utility/Firebase";
+import { db, fetchData, writeData } from "../utility/Firebase";
 
 import { getInitials, BoxedInitials } from "../utility/Initials";
 import { showErrorToast } from "../utility/ShowToast";
 import { increment, ref, update } from "firebase/database";
+import { ChannelType, StateType, UserType } from "../types";
 
 /* -------------------------------------------------------------------------- */
 /*             A component for a channel button on the right side.            */
@@ -23,25 +28,45 @@ import { increment, ref, update } from "firebase/database";
  * At some point it worked, but some changes will have to be done to make it work again.
  */
 
-const Channel = ({ isDummy, uid, name = "", id, setChannel }) => {
+interface ChannelProps {
+  isDummy?: boolean;
+  channel: ChannelType;
+  user: UserType;
+  stateSelectedChannel: StateType<number>;
+  stateFocus: StateType<boolean>;
+}
+
+export function Channel({
+  isDummy,
+  channel,
+  user,
+  stateSelectedChannel,
+  stateFocus,
+}: ChannelProps) {
   const toast = useToast();
   const toastIdRef = React.useRef();
 
-  const handlePrepareChannel = useCallback(async () => {
-    if (isDummy || id === null) return;
+  const setSelectedChannel = stateSelectedChannel[1];
+  const setFocus = stateFocus[1];
+  const { id, name } = channel;
+  const { id: userId } = user;
 
-    setChannel(id);
+  const handlePrepareChannel = useCallback(async () => {
+    if (isDummy) return;
+
+    setFocus(true);
+    setSelectedChannel(id);
 
     const data = await fetchData(`channel/${id}`);
     const members = data.member;
 
-    if (!members[uid] === undefined) return;
+    if (!members[userId] === undefined) return;
 
-    const updates = {};
+    const updates: Record<string, any> = {};
     updates[`channel/${id}/countMember`] = increment(1);
     updates[`channel/${id}/member`] = {
       ...members,
-      [uid]: true,
+      [userId]: true,
     };
 
     try {
@@ -49,25 +74,7 @@ const Channel = ({ isDummy, uid, name = "", id, setChannel }) => {
     } catch (e) {
       showErrorToast(toast, toastIdRef);
     }
-
-    // database
-    //   .ref(`channel/${id}`)
-    //   .child(`countMember`)
-    //   .set(firebase.database.ServerValue.increment(1))
-    //   .then(() => {
-    //     writeData(`channel/${id}/member/`, {
-    //       ...members,
-    //       [uid]: true,
-    //     });
-    //   })
-    //   .catch((e) => {
-    //     showErrorToast(toast, toastIdRef);
-    //   });
-  }, [id, isDummy, setChannel, toast, uid]);
-
-  // This is so that the user is automatically added to Welcome channel
-  // if they haven't since everyone arrives at the Welcome channel upon sign up or login.
-  // if (id === 0) prepareChannel();
+  }, [id, isDummy, setFocus, setSelectedChannel, toast, userId]);
 
   return (
     <Box
@@ -96,6 +103,4 @@ const Channel = ({ isDummy, uid, name = "", id, setChannel }) => {
       </Text>
     </Box>
   );
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Channel);
+}

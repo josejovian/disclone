@@ -202,7 +202,6 @@ const Side = (props) => {
             size="2rem"
             color={getColor(props.user.name)}
             initials={getInitials(props.user.name)}
-            ignoreFallback={true}
           />
           <Text lineHeight="1rem" fontSize="1rem" fontFamily="Noto Sans">
             {props.user.name}

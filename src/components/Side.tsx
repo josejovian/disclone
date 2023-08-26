@@ -5,47 +5,56 @@
 import { Box, Text, useToast, IconButton } from "@chakra-ui/react";
 import { MdLogout, MdKeyboardBackspace } from "react-icons/md";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { connect } from "react-redux";
 import { mapStateToProps, mapDispatchToProps } from "../utility/Redux";
 import { useNavigate } from "react-router";
 
-import { writeData, fetchData, db, database } from "../utility/Firebase";
+import { writeData, fetchData, db, auth } from "../utility/Firebase";
 import firebase from "firebase/compat/app";
 import { signOut } from "firebase/auth";
 
-import Channel from "./Channel";
+import { Channel } from "./Channel";
 import NewChannel from "./NewChannel";
 
 import { showErrorToast, showToast } from "../utility/ShowToast";
 import { getInitials, BoxedInitials, getColor } from "../utility/Initials";
 import { increment, ref, update } from "firebase/database";
+import { useUser } from "../hooks";
+import { ChannelType, StateType } from "../types";
+import { MemberList } from "./MemberList";
 
-/* TODO:
- * Add a placeholder channel that appears before the actual channels load.
- * At some point it worked, but some changes will have to be done to make it work again.
- 
+export interface SideProps {
+  stateChannels: StateType<Record<number, ChannelType>>;
+  stateSide: StateType<boolean>;
+  stateSelectedChannel: StateType<number>;
+}
 
-const SkeletonChannel = () => {
-	return (
-		<HStack marginLeft="32px" marginBottom="8px" padding="4px unset">
-			<SkeletonCircle size="32px" />
-			<Skeleton width="272px" height="32px" />
-		</HStack>
-	);
-};
- */
-
-/* -------------------------------------------------------------------------- */
-/*                              Sidebar Component                             */
-/* -------------------------------------------------------------------------- */
-
-const Side = (props) => {
+export function Side({
+  stateChannels,
+  stateSide,
+  stateSelectedChannel,
+}: SideProps) {
   const toast = useToast();
   const toastIdRef = React.useRef();
-  const history = useNavigate();
 
-  const barStyle = useMemo(
+  const stateFocus = useState(false);
+  const [focus, setFocus] = stateFocus;
+
+  const history = useNavigate();
+  const stateUser = useUser();
+  const user = stateUser[0];
+  const [side, setSide] = stateSide;
+  const channels = stateChannels[0];
+  console.log(channels);
+  const [selectedChannel, setSelectedChannel] = stateSelectedChannel;
+  console.log(selectedChannel);
+  const channel = useMemo(
+    () => channels[selectedChannel],
+    [channels, selectedChannel]
+  );
+
+  const barStyle = useMemo<any>(
     () => ({
       display: "flex",
       position: "fixed",
@@ -63,8 +72,8 @@ const Side = (props) => {
     []
   );
 
-  const newChannel =
-    (async (data) => {
+  const handleCreateNewChannel = useCallback(
+    async (data: any) => {
       let id = await fetchData("counter/");
 
       let channel = {
@@ -80,7 +89,7 @@ const Side = (props) => {
         },
       };
 
-      const updates = {};
+      const updates: any = {};
       updates[`counter/channel`] = increment(1);
       updates[`channel/${id.channel}/`] = channel;
 
@@ -101,10 +110,11 @@ const Side = (props) => {
       //     showErrorToast(toast, toastIdRef);
       //   });
     },
-    []);
+    [toast]
+  );
 
-  const logoutAccount = useCallback(() => {
-    signOut(props.auth)
+  const handleLogoutAccount = useCallback(() => {
+    signOut(auth)
       .then(() => {
         history("/");
         showToast(
@@ -116,52 +126,54 @@ const Side = (props) => {
           2000,
           true
         );
-        props.logout();
-        window.location.reload();
+        // props.logout();
+        // window.location.reload();
       })
       .catch((error) => {
         showErrorToast(toast, toastIdRef);
       });
-  }, [history, props, toast]);
+  }, [history, toast]);
 
-  /* ------------------------------ Logout Button ----------------------------- */
-
-  const renderLogout = useCallback(({ logout }) => {
+  const renderLogout = useMemo(() => {
     return (
       <IconButton
+        aria-label="logout"
         colorScheme="red"
         icon={<MdLogout />}
         variant="outline"
         minWidth="0"
         width="2rem"
         height="2rem"
-        onClick={logout}
+        onClick={handleLogoutAccount}
       />
     );
-  }, []);
+  }, [handleLogoutAccount]);
 
-  /* ---------------------------- List of Channels ---------------------------- */
-
-  const renderChannelList = useMemo(() => {
-    let channels = props.channels;
-    if (channels === null || channels === undefined) channels = [];
-
-    const entries = Object.entries(channels);
-
-    return entries.map((value) => {
-      let val = value[1];
-      let key = val.id;
-      return <Channel key={`channel-${key}-${val.name}`} {...val} id={key} />;
-    });
-  }, [props.channels]);
+  const renderChannelList = useMemo(
+    () =>
+      Object.entries(channels).map(([id, channel]) => (
+        <Channel
+          key={`channel-${id}`}
+          stateFocus={stateFocus}
+          stateSelectedChannel={stateSelectedChannel}
+          channel={{
+            ...channel,
+            id: Number(id),
+          }}
+          user={user}
+        />
+      )),
+    [channels, stateFocus, stateSelectedChannel, user]
+  );
 
   /* ------------------------- The top-part of sidebar ------------------------ */
 
-  const renderSideHeader = useMemo(() => {
-    if (props.focus !== null) {
-      return (
+  const renderSideHeader = useMemo(
+    () =>
+      focus ? (
         <Box {...barStyle} justifyContent="flex-start">
           <IconButton
+            aria-label="toggle drawer"
             colorScheme="black"
             icon={<MdKeyboardBackspace />}
             variant="ghost"
@@ -169,7 +181,7 @@ const Side = (props) => {
             width="2rem"
             height="2rem"
             marginRight="1rem"
-            onClick={() => props.removeFocus()}
+            onClick={() => setFocus((prev) => !prev)}
           />
           <Text
             lineHeight="1rem"
@@ -180,10 +192,7 @@ const Side = (props) => {
             All Channels
           </Text>
         </Box>
-      );
-      // Otherwise, just show the channel and new channel button.
-    } else {
-      return (
+      ) : (
         <Box {...barStyle}>
           <Text
             lineHeight="1rem"
@@ -193,42 +202,33 @@ const Side = (props) => {
           >
             Channels
           </Text>
-          <NewChannel newChannel={newChannel} />
+          <NewChannel newChannel={handleCreateNewChannel} />
         </Box>
-      );
-    }
-  }, [barStyle, newChannel, props]);
+      ),
+    [focus, barStyle, setFocus, handleCreateNewChannel]
+  );
 
   /* ----------------------- The bottom-part of sidebar ----------------------- */
 
   const renderSideFooter = useMemo(() => {
-    if (props.user === null) {
+    if (!user) {
       return <></>;
     }
 
     return (
       <>
         <Box {...barStyle} top="unset" bottom="0">
-          <BoxedInitials
-            size="2rem"
-            color={getColor(props.user.name)}
-            initials={getInitials(props.user.name)}
-            ignoreFallback={true}
-          />
+          <BoxedInitials size="2rem" name={user.name} />
           <Text lineHeight="1rem" fontSize="1rem" fontFamily="Noto Sans">
-            {props.user.name}
+            {user.name}
           </Text>
-          {renderLogout({
-            logout: logoutAccount,
-          })}
+          {renderLogout}
         </Box>
       </>
     );
-  }, [barStyle, logoutAccount, props.user, renderLogout]);
+  }, [barStyle, renderLogout, user]);
 
-  /* -------------- A header text to separate content in sidebar. ------------- */
-
-  const renderSideContentHeader = useCallback(({ text }) => {
+  const renderSideContentHeader = useCallback(({ text }: { text: string }) => {
     return (
       <Text
         lineHeight="1rem"
@@ -242,60 +242,9 @@ const Side = (props) => {
     );
   }, []);
 
-  /* ----------------------- The middle-part of sidebar ----------------------- */
-
-  const renderSideContent = useMemo(() => {
-    // Prevent errors just in case if the channels haven't been loaded yet.
-    if (props.channels && !props.focus) {
-      return renderChannelList;
-    } else if (
-      props.channels &&
-      props.channels[props.focus] &&
-      props.channelUsers
-    ) {
-      let ch = JSON.parse(props.channelUsers);
-
-      if (ch === null || ch === undefined) ch = {};
-      ch = Object.entries(ch);
-      const memberList = ch.map((user) => {
-        const [_userId, _userData] = [user[0], user[1]];
-
-        let _initials = null,
-          _color = "gray";
-        if (_userId !== "system") {
-          _initials = getInitials(_userData.name);
-          _color = getColor(_userData.name);
-        }
-
-        return (
-          <Box
-            key={`memberList-${_userId}`}
-            width="calc(384px)"
-            display="flex"
-            flexDirection="row"
-            marginLeft="-2rem"
-            padding="0.25rem 2rem 0.25rem 2rem"
-            marginBottom="0.5rem"
-            fontFamily="Noto Sans"
-            userSelect="none"
-            _hover={{
-              backgroundColor: "#3C393F",
-            }}
-          >
-            <BoxedInitials size="2rem" color={_color} initials={_initials} />
-            <Text
-              color="#BDBDBD"
-              lineHeight="2rem"
-              marginLeft="1rem"
-              letterSpacing="0.2px"
-            >
-              {_userData.name}
-            </Text>
-          </Box>
-        );
-      });
-
-      return (
+  const renderChannelDescription = useMemo(
+    () =>
+      channel && (
         <Box marginLeft="2rem" marginTop="2rem">
           {renderSideContentHeader({
             text: "Channel Description",
@@ -306,24 +255,23 @@ const Side = (props) => {
             marginBottom="2rem"
             paddingRight="2rem"
           >
-            {props.channels[props.focus].desc}
+            {channel.desc}
           </Text>
           {renderSideContentHeader({
             text: "Member List",
           })}
-          {memberList}
+          {Object.keys(channel.member).map((member) => (
+            <MemberList userId={member} key={member} />
+          ))}
         </Box>
-      );
-    } else {
-      return <></>;
-    }
-  }, [
-    props.channelUsers,
-    props.channels,
-    props.focus,
-    renderChannelList,
-    renderSideContentHeader,
-  ]);
+      ),
+    [channel, renderSideContentHeader]
+  );
+
+  const renderSideContent = useMemo(
+    () => (focus ? renderChannelDescription : renderChannelList),
+    [focus, renderChannelDescription, renderChannelList]
+  );
 
   return (
     <>
@@ -335,7 +283,7 @@ const Side = (props) => {
         left={{ base: "-384px", lg: "0" }}
         bg="#120F13"
         zIndex="4"
-        className={props.drawer}
+        className={side ? "drawer-open" : ""}
         transition="all 0.5s ease-in-out"
       >
         {renderSideHeader}
@@ -346,6 +294,4 @@ const Side = (props) => {
       </Box>
     </>
   );
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Side);
+}

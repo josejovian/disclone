@@ -13,62 +13,24 @@ import { useMemo } from "react";
 /*                A box that contains the register/login Form.                */
 /* -------------------------------------------------------------------------- */
 
-export const AuthenticationLayout = ({ children }) => {
-  return (
-    <Box
-      position="fixed"
-      top="0"
-      left="0"
-      width="100vw"
-      height="100vh"
-      display="flex"
-      flexDirection="column"
-      justifyContent="center"
-      alignItems="center"
-    >
-      <Box
-        padding="2rem"
-        width="24rem"
-        bg="#120F13"
-        borderRadius="lg"
-        shadow="lg"
-      >
-        {children}
-      </Box>
-      <Text fontSize="0.8rem" marginTop="0.5rem">
-        Created by&nbsp;
-        <a href="https://github.com/josejovian" title="Jose Jovian">
-          josejovian
-        </a>
-        &nbsp;-&nbsp;
-        <a href="https://devchallenges.io/" title="Dev Challenges">
-          devChallenges.io
-        </a>
-      </Text>
-    </Box>
-  );
-};
+interface AuthenticationFormProps {
+  actionName: "login" | "register";
+  actionFunction: (values: any) => void;
+}
 
-/* -------------------------------------------------------------------------- */
-/*                           The register/login form                          */
-/* -------------------------------------------------------------------------- */
-
-/* NOTE:
- * While this may be a simple way to reuse the same code for both register/login,
- * I might have to create a separate component if there is the need to create extra
- * input columns in any of the form.
- */
-
-const AuthenticationForm = ({ actionName, actionFunction }) => {
+export function AuthenticationForm({
+  actionName,
+  actionFunction,
+}: AuthenticationFormProps) {
   const validateManager = useMemo(
     () => ({
-      email: (value) => {
+      email: (value: any) => {
         return validateWithRules(columnRules, "E-mail", "email", value);
       },
-      name: (value) => {
+      name: (value: any) => {
         return validateWithRules(columnRules, "Display Name", "name", value);
       },
-      password: (value) => {
+      password: (value: any) => {
         return validateWithRules(columnRules, "Password", "password", value);
       },
     }),
@@ -134,9 +96,7 @@ const AuthenticationForm = ({ actionName, actionFunction }) => {
       )}
     </Formik>
   );
-};
-
-export default AuthenticationForm;
+}
 
 const columnRules = {
   email: {
